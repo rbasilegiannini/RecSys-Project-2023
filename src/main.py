@@ -1,9 +1,10 @@
-import dataset_extractor
+import dataset_extractor as ds_extractor
 
 
 def main():
     print('Welcome to the best Recommender System.\nEver.')
-    dataset_extractor = dataset_extractor.DatasetExtractor(3)
+    dataset_extractor = ds_extractor.DatasetExtractor()
+    urm = dataset_extractor.get_urm()
 
 
 if __name__ == '__main__':

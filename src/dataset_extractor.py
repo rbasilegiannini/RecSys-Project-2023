@@ -1,9 +1,7 @@
 class DatasetExtractor:
-
-    def __init__(self, x):
-        self.x = x
+    def __init__(self):
+        pass
 
     def get_urm(self):
-        print('URM in progress!')
-
-
+        dataset_file = open('/res/u.data', 'r')
+        dataset_text = dataset_file.read()
