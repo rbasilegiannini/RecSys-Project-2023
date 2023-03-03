@@ -46,6 +46,6 @@ if __name__ == '__main__':
     nx.draw(B, pos, node_color = c, with_labels=True, node_size = 100, alpha = 0.6)
     plt.show()
 
-    neighborhoods = nb.extract_neighborhood(URM)
+    neighborhoods = nb.extract_neighborhood(urm_sparse)
     print(neighborhoods[0])
     print(neighborhoods[1])

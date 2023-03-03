@@ -52,21 +52,28 @@ def extract_neighborhood(urm):
     communities = nx.algorithms.community.louvain_communities(bi_graph)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
+    item_nodes = set(bi_graph) - user_nodes
 
+    # for each community, retrieve the user's (item's) neighborhood
     for community in communities:
+
         for node in community:
             neighborhood = np.array(list(community))
 
             if node in user_nodes:  # node is a user
-                # Remove other users
-                neighborhood = np.delete(neighborhood, np.where(neighborhood < len(user_nodes)))
+                # Remove other users from the community
+                for n in neighborhood:
+                    if n in user_nodes:
+                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
 
                 # Collect the user's neighborhood (of items)
                 users_neighborhood.append(neighborhood)
 
             else:  # node is an item
-                # Remove other items
-                neighborhood = np.delete(neighborhood, np.where(neighborhood >= len(user_nodes)))
+                # Remove other items from the community
+                for n in neighborhood:
+                    if n in item_nodes:
+                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
 
                 # Collect the item's neighborhood (of users)
                 items_neighborhood.append(neighborhood)
