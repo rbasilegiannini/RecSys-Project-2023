@@ -9,28 +9,66 @@ def generate_bipartite_network(urm):
     :return:
         A bipartite graph
     """
-    _B = nx.Graph()
+    bi_graph = nx.Graph()
 
     # initialize interaction dct with user nodes
-    _interaction_dct = {}
-    for _user in range(urm.shape[0]):
-        _interaction_dct[_user] = []
-        _B.add_node(_user, bipartite=0)  # Users set
+    interaction_dct = {}
+    for user in range(urm.shape[0]):
+        interaction_dct[user] = []
+        bi_graph.add_node(user, bipartite=0)  # Users set
 
     # An offset to distinguish users from items id
     offset = urm.shape[0]
 
-    for _item in range(urm.shape[1]):
-        _B.add_node(_item + offset, bipartite=1)  # Items set
+    for item in range(urm.shape[1]):
+        bi_graph.add_node(item + offset, bipartite=1)  # Items set
 
     # Retrieve user-items interaction
-    for _user, _items in _interaction_dct.items():
-        _interaction_dct[_user] = np.array(np.where(urm[_user] == 1)).flatten()
-        _interaction_dct[_user] += offset
+    for user, items in interaction_dct.items():
+        interaction_dct[user] = np.array(np.where(urm[user] == 1)).flatten()
+        interaction_dct[user] += offset
 
         # Add edges only between nodes of opposite node sets
-        for _item in _interaction_dct[_user]:
-            _B.add_edge(_user, _item)
+        for item in interaction_dct[user]:
+            bi_graph.add_edge(user, item)
 
-    if nx.is_bipartite(_B):
-        return _B
+    if nx.is_bipartite(bi_graph):
+        return bi_graph
+
+
+def extract_neighborhood(urm):
+    """
+    :param urm:
+        The User-Rating Matrix
+    :return:
+        A list with users neighborhood (index 0) and items neighborhood (index 1)
+    """
+
+    users_neighborhood = []
+    items_neighborhood = []
+
+    # extract communities from URM
+    bi_graph = generate_bipartite_network(urm)
+    communities = nx.algorithms.community.louvain_communities(bi_graph)
+
+    user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
+
+    for community in communities:
+        for node in community:
+            neighborhood = np.array(list(community))
+
+            if node in user_nodes:  # node is a user
+                # Remove other users
+                neighborhood = np.delete(neighborhood, np.where(neighborhood < len(user_nodes)))
+
+                # Collect the user's neighborhood (of items)
+                users_neighborhood.append(neighborhood)
+
+            else:  # node is an item
+                # Remove other items
+                neighborhood = np.delete(neighborhood, np.where(neighborhood >= len(user_nodes)))
+
+                # Collect the item's neighborhood (of users)
+                items_neighborhood.append(neighborhood)
+
+    return [users_neighborhood, items_neighborhood]
