@@ -3,9 +3,9 @@ import os
 
 
 class DatasetExtractor:
-    def __init__(self):
-        self.users_dimension = 943
-        self.items_dimension = 1682
+    def __init__(self, users_dimension, items_dimension):
+        self.users_size = users_dimension
+        self.items_size = items_dimension
 
     def get_urm(self):
         dataset_entries = self.get_dataset_entries()
@@ -13,7 +13,7 @@ class DatasetExtractor:
         return urm
 
     def fill_urm(self, dataset_entries):
-        urm = np.zeros((self.users_dimension, self.items_dimension), dtype=int)
+        urm = np.zeros((self.users_size, self.items_size), dtype=int)
         for entry in dataset_entries:
             entry_fields = entry.split("\t")
             if entry_fields[0] != '' and entry_fields[1] != '':
