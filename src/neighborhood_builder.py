@@ -7,7 +7,7 @@ def generate_bipartite_network(urm):
     :param urm:
         The User-Rating Matrix
     :return:
-        A bipartite graph
+        A bipartite graph and the offset between user's and item's ID
     """
     bi_graph = nx.Graph()
 
@@ -33,7 +33,7 @@ def generate_bipartite_network(urm):
             bi_graph.add_edge(user, item)
 
     if nx.is_bipartite(bi_graph):
-        return bi_graph
+        return [bi_graph, offset]
 
 
 def extract_neighborhood(urm):
@@ -48,7 +48,7 @@ def extract_neighborhood(urm):
     items_neighborhood = []
 
     # extract communities from URM
-    bi_graph = generate_bipartite_network(urm)
+    [bi_graph, offset] = generate_bipartite_network(urm)
     communities = nx.algorithms.community.louvain_communities(bi_graph)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
@@ -67,7 +67,7 @@ def extract_neighborhood(urm):
                         neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
 
                 # Collect the user's neighborhood (of items)
-                users_neighborhood.append(neighborhood)
+                users_neighborhood.append(neighborhood - offset)
 
             else:  # node is an item
                 # Remove other items from the community
