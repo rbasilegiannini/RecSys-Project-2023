@@ -36,10 +36,13 @@ def generate_bipartite_network(urm):
         return [bi_graph, offset]
 
 
-def extract_neighborhood(urm):
+def extract_neighborhood(urm, resolution):
     """
     :param urm:
         The User-Rating Matrix
+    :param resolution:
+        If resolution is less than 1, the algorithm favors larger communities.
+        Greater than 1 favors smaller communities
     :return:
         A list with users neighborhood (index 0) and items neighborhood (index 1)
     """
@@ -49,7 +52,7 @@ def extract_neighborhood(urm):
 
     # extract communities from URM
     [bi_graph, offset] = generate_bipartite_network(urm)
-    communities = nx.algorithms.community.louvain_communities(bi_graph)
+    communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
     item_nodes = set(bi_graph) - user_nodes
