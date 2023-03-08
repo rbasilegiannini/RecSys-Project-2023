@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def binary_encoding(dim, index_elements):
+def get_binary_encoding(dim, index_elements):
     """
     :param dim:
         The array's length
