@@ -1,6 +1,11 @@
 import numpy as np
 
 
+def get_onehot_encoding(size):
+    onehot_matrix = np.identity(size, dtype=int)
+    return onehot_matrix
+    
+    
 def get_binary_encoding(dim, index_elements):
     """
     :param dim:
@@ -15,3 +20,4 @@ def get_binary_encoding(dim, index_elements):
         binary_vector[idx] = 1
 
     return binary_vector
+
