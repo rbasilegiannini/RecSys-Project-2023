@@ -24,8 +24,8 @@ class DatasetExtractor:
 
     def get_dataset_entries(self):
         absolute_path = os.path.dirname(__file__)
-        dataset_path = absolute_path.replace("\src", "\\res\\u.data")
-        print(dataset_path)
+        dataset_path = absolute_path.replace("src", "res")
+        dataset_path = os.path.join(dataset_path, "u.data")
 
         dataset_file = open(dataset_path, 'r')
         dataset_text = dataset_file.read()
