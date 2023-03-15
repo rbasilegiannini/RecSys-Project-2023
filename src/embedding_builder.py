@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Embedding:
     def __init__(self, urm, latent_factor_size):
         """
@@ -33,6 +34,3 @@ class Embedding:
             Matrix of item latent vectors (transpose)
         """
         return self.__V_T
-
-
-
