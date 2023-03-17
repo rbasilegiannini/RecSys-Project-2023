@@ -21,3 +21,21 @@ def get_binary_encoding(dim, index_elements):
 
     return binary_vector
 
+
+def get_neighborhoods_encoding(neighborhoods, size):
+    """
+    :param neighborhoods:
+        The neighborhoods
+    :param size:
+        The array's length
+    :return:
+        The neighborhoods in binary encoding
+    """
+    binary_neighborhoods = []
+    for neighborhood in neighborhoods:
+        binary_neighborhoods.append(
+            get_binary_encoding(size, neighborhood)
+        )
+
+    return binary_neighborhoods
+
