@@ -1,7 +1,9 @@
+import numpy
 import numpy as np
 import keras
 from keras.layers import Conv1D,MaxPooling1D
 
+# TODO: decide if class is needed
 class Embedding:
     def __init__(self, urm, latent_factor_size):
         """
@@ -36,13 +38,27 @@ class Embedding:
         """
         return self.__V_T
 
+    def get_interaction_functions(
+            self, users_latent_vector, transposed_items_latent_vector, latent_factor_size):
+        # TODO: define if items_latent_vectors are naturally transposed or not
+        items_latent_vector = np.transpose(transposed_items_latent_vector)
+
+        interaction_functions = numpy.zeros(
+            (users_latent_vector.shape[0], items_latent_vector.shape[0], latent_factor_size))
+        # TODO: current version is not the most efficient (doesn't exploit numpy optimization) for readability reasons
+        for user in range(users_latent_vector.shape[0]):
+            for item in range(items_latent_vector.shape[0]):
+                interaction_functions[user, item, :] = users_latent_vector[user, :] * items_latent_vector[item, :]
+
+        return interaction_functions
+
     def get_neighborhood_embeddings(self, neighborhoods_encoding, embeddings):
         # First, we get p_u(N) and q_i(N), using a projection of "embeddings"
         # through "neighborhoods_encoding"
         # Then, we normalize p_u(N) and q_i(N)
         pass
 
-    def normalize_embeddings(self, neighborhoods_embeddings):
+    def normalize_neighborhoods_embeddings(self, neighborhoods_embeddings):
         # For each neighborhood, convolute its latent vectors and max-pool it
         for neighborhood_embeddings in neighborhoods_embeddings:
             reshaped_neighborhood_embeddings = neighborhood_embeddings.reshape(
@@ -67,3 +83,4 @@ class Embedding:
                         pooled_neighborhood_embeddings[:, factor_index, kernel_index])
 
             return neighborhood_embeddings_averaged_by_kernel
+

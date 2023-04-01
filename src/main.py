@@ -21,6 +21,7 @@ def main():
     # Retrieve URM and one-hot encoding
     dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
     urm = dataset_extractor.get_urm()
+
     onehot_users = encoder.get_onehot_encoding(USERS_SIZE)
     onehot_items = encoder.get_onehot_encoding(ITEMS_SIZE)
 
@@ -33,6 +34,10 @@ def main():
     embedding = emb_builder.Embedding(urm, hyperparams['k'])
     users_latent_vector = embedding.get_user_embeddings()
     items_latent_vector = embedding.get_item_embeddings()
+
+    # Compute the interaction function for pair <user,item>
+    interaction_functions = emb_builder.get_interaction_functions(
+        users_latent_vector, items_latent_vector, hyperparams['k'])
 
     del embedding   # Optimization
 
