@@ -36,8 +36,12 @@ def main():
     items_latent_vector = embedding.get_item_embeddings()
 
     # Compute the interaction function for pair <user,item>
-    interaction_functions = emb_builder.get_interaction_functions(
+    interaction_functions = embedding.get_interaction_functions(
         users_latent_vector, items_latent_vector, hyperparams['k'])
+
+    # Retrieve the neighborhood embedding
+    users_neighborhood_embedding = embedding.get_neighborhoods_embedding(binary_users_neighborhood, items_latent_vector)
+    items_neighborhood_embedding = embedding.get_neighborhoods_embedding(binary_items_neighborhood, users_latent_vector)
 
     del embedding   # Optimization
 

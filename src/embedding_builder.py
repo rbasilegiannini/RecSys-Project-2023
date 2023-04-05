@@ -1,7 +1,6 @@
-import numpy
 import numpy as np
-import keras
 from keras.layers import Conv1D,MaxPooling1D
+
 
 # TODO: decide if class is needed
 class Embedding:
@@ -43,7 +42,7 @@ class Embedding:
         # TODO: define if items_latent_vectors are naturally transposed or not
         items_latent_vector = np.transpose(transposed_items_latent_vector)
 
-        interaction_functions = numpy.zeros(
+        interaction_functions = np.zeros(
             (users_latent_vector.shape[0], items_latent_vector.shape[0], latent_factor_size))
         # TODO: current version is not the most efficient (doesn't exploit numpy optimization) for readability reasons
         for user in range(users_latent_vector.shape[0]):
@@ -52,35 +51,44 @@ class Embedding:
 
         return interaction_functions
 
-    def get_neighborhood_embeddings(self, neighborhoods_encoding, embeddings):
-        # First, we get p_u(N) and q_i(N), using a projection of "embeddings"
+    def get_neighborhoods_embedding(self, neighborhoods_encoding, transposed_embedding):
+        # TODO: define if items_latent_vectors are naturally transposed or not
+        embedding = np.transpose(transposed_embedding)
+        # First, we get p_u(N) (or q_i(N)), using a projection of "embeddings"
         # through "neighborhoods_encoding"
-        # Then, we normalize p_u(N) and q_i(N)
-        pass
+        normalized_neighborhoods_embedding = []
+        for neighborhood_encoding in neighborhoods_encoding:
+            neighborhood_embedding = embedding[np.where(neighborhood_encoding == 1)]
+            # Then, we normalize p_u(N) (or q_i(N))
+            normalized_neighborhood_embedding = self.normalize_neighborhood_embedding(neighborhood_embedding)
+            normalized_neighborhoods_embedding.append(normalized_neighborhood_embedding)
 
-    def normalize_neighborhoods_embeddings(self, neighborhoods_embeddings):
-        # For each neighborhood, convolute its latent vectors and max-pool it
-        for neighborhood_embeddings in neighborhoods_embeddings:
-            reshaped_neighborhood_embeddings = neighborhood_embeddings.reshape(
-                neighborhood_embeddings.shape[0], neighborhood_embeddings.shape[1], 1)
+        return normalized_neighborhoods_embedding
 
-            convoluted_neighborhood_embeddings = Conv1D(32, 5, activation='relu',
-                                                        padding='same',
-                                                        input_shape=reshaped_neighborhood_embeddings[1:]
-                                                        )(reshaped_neighborhood_embeddings)
-            pooled_neighborhood_embeddings = MaxPooling1D(2)(convoluted_neighborhood_embeddings)
+    def normalize_neighborhood_embedding(self, neighborhood_embedding):
+        # Convolute the neighborhood latent vectors and max-pool it
+        reshaped_neighborhood_embedding = neighborhood_embedding.reshape(
+            neighborhood_embedding.shape[0], neighborhood_embedding.shape[1], 1)
 
-            # To set a fixed dimension for the neighborhood latent vectors,
-            # indipendent from the neighborhood size,
-            # given a latent factor and a kernel, compute the average of the kernel on the neighbors
-            latent_factors_size = pooled_neighborhood_embeddings.shape[1]
-            kernels_size = pooled_neighborhood_embeddings.shape[2]
-            neighborhood_embeddings_averaged_by_kernel = np.zeros((latent_factors_size, kernels_size))
+        convoluted_neighborhood_embedding = Conv1D(32, 5, activation='relu',
+                                                    padding='same',
+                                                    input_shape=reshaped_neighborhood_embedding[1:]
+                                                    )(reshaped_neighborhood_embedding)
+        pooled_neighborhood_embedding = MaxPooling1D(2)(convoluted_neighborhood_embedding)
 
-            for factor_index in latent_factors_size:
-                for kernel_index in kernels_size:
-                    neighborhood_embeddings_averaged_by_kernel[factor_index, kernel_index] = np.average(
-                        pooled_neighborhood_embeddings[:, factor_index, kernel_index])
+        # To set a fixed dimension for the neighborhood latent vectors,
+        # independent of the neighborhood size,
+        # given a latent factor and a kernel, compute the average of the kernel on the neighbors
+        latent_factors_size = pooled_neighborhood_embedding.shape[1]
+        kernels_size = pooled_neighborhood_embedding.shape[2]
+        averaged_neighborhood_embedding = np.zeros((latent_factors_size, kernels_size))
+        for factor_index in range(latent_factors_size):
+            for kernel_index in range(kernels_size):
+                averaged_neighborhood_embedding[factor_index, kernel_index] = np.average(
+                    pooled_neighborhood_embedding[:, factor_index, kernel_index])
 
-            return neighborhood_embeddings_averaged_by_kernel
+        # The neighborhood embedding is flattened, since kernel dimension is not relevant
+        # for the upper abstraction levels
+        averaged_neighborhood_embedding = averaged_neighborhood_embedding.flatten()
 
+        return averaged_neighborhood_embedding
