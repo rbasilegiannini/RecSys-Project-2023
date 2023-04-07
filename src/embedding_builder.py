@@ -21,7 +21,7 @@ class Embedding:
 
         # Compute U and V
         self.__U = u
-        self.__V_T = s @ vh
+        self.__V = np.transpose(s @ vh)
 
     def get_user_embeddings(self):
         """
@@ -35,25 +35,20 @@ class Embedding:
         :return:
             Matrix of item latent vectors (transpose)
         """
-        return self.__V_T
+        return self.__V
 
     def get_interaction_functions(
-            self, users_latent_vector, transposed_items_latent_vector, latent_factor_size):
-        # TODO: define if items_latent_vectors are naturally transposed or not
-        items_latent_vector = np.transpose(transposed_items_latent_vector)
-
+            self, users_latent_vector, items_latent_vector, latent_factor_size):
         interaction_functions = np.zeros(
             (users_latent_vector.shape[0], items_latent_vector.shape[0], latent_factor_size))
-        # TODO: current version is not the most efficient (doesn't exploit numpy optimization) for readability reasons
+
         for user in range(users_latent_vector.shape[0]):
             for item in range(items_latent_vector.shape[0]):
                 interaction_functions[user, item, :] = users_latent_vector[user, :] * items_latent_vector[item, :]
 
         return interaction_functions
 
-    def get_neighborhoods_embedding(self, neighborhoods_encoding, transposed_embedding):
-        # TODO: define if items_latent_vectors are naturally transposed or not
-        embedding = np.transpose(transposed_embedding)
+    def get_neighborhoods_embedding(self, neighborhoods_encoding, embedding):
         # First, we get p_u(N) (or q_i(N)), using a projection of "embeddings"
         # through "neighborhoods_encoding"
         normalized_neighborhoods_embedding = []
@@ -70,10 +65,12 @@ class Embedding:
         reshaped_neighborhood_embedding = neighborhood_embedding.reshape(
             neighborhood_embedding.shape[0], neighborhood_embedding.shape[1], 1)
 
+        # |N| x k x |kernels|
         convoluted_neighborhood_embedding = Conv1D(32, 5, activation='relu',
                                                     padding='same',
                                                     input_shape=reshaped_neighborhood_embedding[1:]
                                                     )(reshaped_neighborhood_embedding)
+        # |N| x k/2 x |kernels|
         pooled_neighborhood_embedding = MaxPooling1D(2)(convoluted_neighborhood_embedding)
 
         # To set a fixed dimension for the neighborhood latent vectors,
