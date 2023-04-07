@@ -1,5 +1,5 @@
 import numpy as np
-from keras.layers import Conv1D,MaxPooling1D
+from keras.layers import Conv1D, MaxPooling1D
 
 
 # TODO: decide if class is needed
