@@ -31,19 +31,15 @@ def main():
     binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, USERS_SIZE)
 
     # Compute latent vectors
-    embedding = emb_builder.Embedding(urm, hyperparams['k'])
-    users_latent_vector = embedding.get_user_embeddings()
-    items_latent_vector = embedding.get_item_embeddings()
+    [users_latent_vector, items_latent_vector] = emb_builder.get_latent_vectors(urm,  hyperparams['k'])
 
     # Compute the interaction function for pair <user,item>
-    interaction_functions = embedding.get_interaction_functions(
+    interaction_functions = emb_builder.get_interaction_functions(
         users_latent_vector, items_latent_vector, hyperparams['k'])
 
     # Retrieve the neighborhood embedding
-    users_neighborhood_embedding = embedding.get_neighborhoods_embedding(binary_users_neighborhood, items_latent_vector)
-    items_neighborhood_embedding = embedding.get_neighborhoods_embedding(binary_items_neighborhood, users_latent_vector)
-
-    del embedding   # Optimization
+    users_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_users_neighborhood, items_latent_vector)
+    items_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_items_neighborhood, users_latent_vector)
 
 
 if __name__ == '__main__':
