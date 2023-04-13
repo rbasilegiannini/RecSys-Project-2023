@@ -1,4 +1,5 @@
 import numpy as np
+import activation_functions as af
 
 
 class NeuralNetworkFF:
@@ -37,6 +38,9 @@ class NeuralNetworkFF:
             self.__neurons_per_hidden_layers = [n + 1 for n in self.__neurons_per_hidden_layers]
             self.__neurons_per_output_layer += 1
 
+        self.__neurons_per_layer = []
+        self.__weights_per_layer = []
+
         self.__init_weights()
 
     def __init_weights(self):
@@ -44,15 +48,13 @@ class NeuralNetworkFF:
         Weights random initialization.
         """
 
-        # For each layer we have a matrix of weights
-        self.__weights_per_layer = []
-
         # Init layers
-        neurons_per_layer = [self.__neurons_per_input_layer]
+        self.__neurons_per_layer = [self.__neurons_per_input_layer]
         for n in self.__neurons_per_hidden_layers:
-            neurons_per_layer.append(n)
-        neurons_per_layer.append(self.__neurons_per_output_layer)
+            self.__neurons_per_layer.append(n)
+        self.__neurons_per_layer.append(self.__neurons_per_output_layer)
 
+        # For each layer we have a matrix of weights
         for layer in range(self.__num_layers):
 
             # Input layer
@@ -61,10 +63,57 @@ class NeuralNetworkFF:
 
             # Hidden or output layer
             else:
-                input_lines = neurons_per_layer[layer - 1]
+                input_lines = self.__neurons_per_layer[layer - 1]
 
-            current_neurons = neurons_per_layer[layer]
+            current_neurons = self.__neurons_per_layer[layer]
             weights = np.random.rand(current_neurons, input_lines)
 
             self.__weights_per_layer.append(weights)
 
+    def compute_network(self, input_data):
+        """
+        This function computes the output of the NN based on the current parameters
+
+        :param input_data:
+            Array with input data.
+        :return:
+            The output neurons' value.
+        """
+
+        # Init input
+        input_data = np.array(input_data)
+        if self.__bias:
+            input_data = np.insert(input_data, 0, [1], axis=0)
+        input_data = np.column_stack([input_data])
+
+        # From the input layer to the last hidden layer
+        input_lines = input_data
+        afunc_type = self.__activation_function
+        for layer in range(self.__num_layers - 1):
+
+            # Init loop
+            current_params = np.ndarray([self.__weights_per_layer[layer]])
+            num_of_neurons = self.__neurons_per_layer[layer]
+            output_of_layer = np.ndarray([num_of_neurons, 1])
+
+            # Compute activation and output
+            activation = current_params @ input_lines
+            for n in range(num_of_neurons):
+                output_of_layer[n] = af.activation_function[afunc_type](activation[n])
+
+            # Update input_lines for the next loop
+            input_lines = output_of_layer
+            if self.__bias:
+                input_data = np.insert(input_data, 0, [1], axis=0)
+
+        # Compute the output layer
+        current_params = np.ndarray([self.__weights_per_layer[-1]])
+        num_of_neurons = self.__neurons_per_output_layer
+        output_of_layer = np.ndarray([num_of_neurons, 1])
+
+        activation = current_params @ input_lines
+        out_func_type = self.__output_function
+        for n in range(num_of_neurons):
+            output_of_layer[n] = af.activation_function[out_func_type](activation[n])
+
+        return output_of_layer
