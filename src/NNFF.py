@@ -29,6 +29,12 @@ class NeuralNetworkFF:
         self.__num_layers = len(neurons_per_hidden_layers) + 2  # sum input and output layers
         self.__activation_function = activation_function
         self.__bias = bias
+
+        if self.__bias:
+            self.__neurons_per_input_layer += 1
+            self.__neurons_per_hidden_layers = [n + 1 for n in self.__neurons_per_hidden_layers]
+            self.__neurons_per_output_layer += 1
+
         self.__init_weights()
 
     def __init_weights(self):
@@ -57,11 +63,6 @@ class NeuralNetworkFF:
 
             current_neurons = neurons_per_layer[layer]
             weights = np.random.rand(current_neurons, input_lines)
-
-            # Eventually add bias nodes
-            if self.__bias:
-                bias_nodes = np.ones((current_neurons, 1))
-                weights = np.append(weights, bias_nodes, axis=1)
 
             self.__weights_per_layer.append(weights)
 
