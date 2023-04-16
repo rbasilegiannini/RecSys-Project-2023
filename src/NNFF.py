@@ -1,5 +1,6 @@
 import numpy as np
 import activation_functions as af
+import random
 
 
 class NeuralNetworkFF:
@@ -33,13 +34,8 @@ class NeuralNetworkFF:
         self.__output_function = output_function
         self.__bias = bias
 
-        if self.__bias:
-            self.__neurons_per_input_layer += 1
-            self.__neurons_per_hidden_layers = [n + 1 for n in self.__neurons_per_hidden_layers]
-            self.__neurons_per_output_layer += 1
-
         self.__neurons_per_layer = []
-        self.__weights_per_layer = []
+        self.__params_per_layer = []
 
         self.__init_weights()
 
@@ -68,7 +64,10 @@ class NeuralNetworkFF:
             current_neurons = self.__neurons_per_layer[layer]
             weights = np.random.rand(current_neurons, input_lines)
 
-            self.__weights_per_layer.append(weights)
+            if self.__bias:
+                weights = np.insert(weights, 0, [random.random()], axis=1)
+
+            self.__params_per_layer.append(weights)
 
     def compute_network(self, input_data):
         """
@@ -92,7 +91,7 @@ class NeuralNetworkFF:
         for layer in range(self.__num_layers - 1):
 
             # Init loop
-            current_params = np.ndarray([self.__weights_per_layer[layer]])
+            current_params = self.__params_per_layer[layer]
             num_of_neurons = self.__neurons_per_layer[layer]
             output_of_layer = np.ndarray([num_of_neurons, 1])
 
@@ -104,10 +103,10 @@ class NeuralNetworkFF:
             # Update input_lines for the next loop
             input_lines = output_of_layer
             if self.__bias:
-                input_data = np.insert(input_data, 0, [1], axis=0)
+                input_lines = np.insert(input_lines, 0, [1], axis=0)
 
         # Compute the output layer
-        current_params = np.ndarray([self.__weights_per_layer[-1]])
+        current_params = self.__params_per_layer[-1]
         num_of_neurons = self.__neurons_per_output_layer
         output_of_layer = np.ndarray([num_of_neurons, 1])
 
@@ -117,3 +116,31 @@ class NeuralNetworkFF:
             output_of_layer[n] = af.activation_function[out_func_type](activation[n])
 
         return output_of_layer
+
+    def set_layer_weights(self, layer, new_layer_weights):
+        if self.__bias:
+            self.__params_per_layer[layer][:, 1:] = new_layer_weights
+        else:
+            self.__params_per_layer[layer] = new_layer_weights
+
+    def set_layer_bias(self, layer, new_layer_bias):
+        if self.__bias:
+            self.__params_per_layer[layer][:, 0] = new_layer_bias
+
+    def get_num_layer(self):
+        return self.__num_layers
+
+    def get_all_params(self):
+        return self.__params_per_layer
+
+    def get_layer_params(self, layer):
+        return self.__params_per_layer[layer]
+
+    def get_layer_weights(self, layer):
+        if self.__bias:
+            return self.__params_per_layer[layer][1, :]
+        else:
+            return self.__params_per_layer[layer]
+
+    def get_neurons_per_layer(self, layer):
+        return self.__neurons_per_layer[layer]
