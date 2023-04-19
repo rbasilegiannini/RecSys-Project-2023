@@ -85,6 +85,8 @@ class NeuralNetworkFF:
         input_data = np.column_stack([input_data])
 
         # From the input layer to the last hidden layer
+        activation = []
+        output = []
         input_lines = input_data
         afunc_type = self.__activation_function
         for layer in range(self.__num_layers - 1):
@@ -95,9 +97,12 @@ class NeuralNetworkFF:
             output_of_layer = np.ndarray([num_of_neurons, 1])
 
             # Compute activation and output
-            activation = current_params @ input_lines
+            activation_of_layer = current_params @ input_lines
+            activation.append(np.array([activation_of_layer]))
+
             for n in range(num_of_neurons):
-                output_of_layer[n] = af.activation_function[afunc_type](activation[n])
+                output_of_layer[n] = af.activation_function[afunc_type](activation_of_layer[n])
+            output.append(np.array([output_of_layer]))
 
             # Update input_lines for the next loop
             input_lines = output_of_layer
@@ -109,12 +114,15 @@ class NeuralNetworkFF:
         num_of_neurons = self.__neurons_per_output_layer
         output_of_layer = np.ndarray([num_of_neurons, 1])
 
-        activation = current_params @ input_lines
+        activation_of_layer = current_params @ input_lines
+        activation.append(np.array([activation_of_layer]))
+
         out_func_type = self.__output_function
         for n in range(num_of_neurons):
-            output_of_layer[n] = af.activation_function[out_func_type](activation[n])
+            output_of_layer[n] = af.activation_function[out_func_type](activation_of_layer[n])
+        output.append(np.array([output_of_layer]))
 
-        return output_of_layer
+        return [activation, output]
 
     def set_layer_weights(self, layer, new_layer_weights):
         if self.__bias:
