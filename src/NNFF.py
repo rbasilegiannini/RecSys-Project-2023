@@ -137,6 +137,12 @@ class NeuralNetworkFF:
     def get_num_layer(self):
         return self.__num_layers
 
+    def get_activation_function(self):
+        return self.__activation_function
+
+    def get_output_function(self):
+        return self.__output_function
+
     def get_all_params(self):
         return self.__params_per_layer
 
@@ -149,5 +155,17 @@ class NeuralNetworkFF:
         else:
             return self.__params_per_layer[layer]
 
-    def get_neurons_per_layer(self, layer):
+    def get_all_weights(self):
+        all_weights = []
+        for layer in range(self.__num_layers):
+            all_weights.append(self.get_layer_weights(layer))
+        return all_weights
+
+    def get_layer_neurons(self, layer):
         return self.__neurons_per_layer[layer]
+
+    def get_all_neurons(self):
+        all_neurons = []
+        for layer in range(self.__num_layers):
+            all_neurons.append(self.get_layer_neurons(layer))
+        return all_neurons
