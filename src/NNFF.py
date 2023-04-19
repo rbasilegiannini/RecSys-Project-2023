@@ -10,7 +10,6 @@ class NeuralNetworkFF:
                  neurons_per_hidden_layers=None,
                  neurons_per_output_layer=1,
                  activation_function='relu',
-                 output_function='identity',
                  bias=None):
         """
         :param input_dim:
@@ -31,7 +30,7 @@ class NeuralNetworkFF:
         self.__neurons_per_output_layer = neurons_per_output_layer
         self.__num_layers = len(neurons_per_hidden_layers) + 2  # sum input and output layers
         self.__activation_function = activation_function
-        self.__output_function = output_function
+        self.__output_function = 'identity'
         self.__bias = bias
 
         self.__neurons_per_layer = []
