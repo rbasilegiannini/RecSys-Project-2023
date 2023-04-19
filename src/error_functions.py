@@ -24,3 +24,13 @@ def cross_entropy_loss(output_lines, targets):
 def softmax(output_lines):
     exps = np.exp(output_lines - np.max(output_lines))
     return exps/np.sum(exps)
+
+
+def cross_entropy_soft_max_der(soft_mat_output, target):
+    if target != 0 and target != 1:
+        print("The target is not in one-hot encoding.")
+        return -1
+    der = soft_mat_output - target
+    return der
+
+
