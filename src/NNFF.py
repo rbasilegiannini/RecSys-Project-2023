@@ -98,11 +98,11 @@ class NeuralNetworkFF:
 
             # Compute activation and output
             activation_of_layer = current_params @ input_lines
-            activation.append(np.array([activation_of_layer]))
+            activation.append(np.array(activation_of_layer))
 
             for n in range(num_of_neurons):
                 output_of_layer[n] = af.activation_function[afunc_type](activation_of_layer[n])
-            output.append(np.array([output_of_layer]))
+            output.append(np.array(output_of_layer))
 
             # Update input_lines for the next loop
             input_lines = output_of_layer
@@ -115,12 +115,12 @@ class NeuralNetworkFF:
         output_of_layer = np.ndarray([num_of_neurons, 1])
 
         activation_of_layer = current_params @ input_lines
-        activation.append(np.array([activation_of_layer]))
+        activation.append(np.array(activation_of_layer))
 
         out_func_type = self.__output_function
         for n in range(num_of_neurons):
             output_of_layer[n] = af.activation_function[out_func_type](activation_of_layer[n])
-        output.append(np.array([output_of_layer]))
+        output.append(np.array(output_of_layer))
 
         return [activation, output]
 
