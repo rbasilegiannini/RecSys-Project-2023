@@ -66,9 +66,11 @@ def back_propagation(NN, input_data, targets):
         input_lines = weights_layer.shape[1]
 
         for neuron in range(num_neurons_layer):
-            # Compute dE_dparm: biases
-            dE_dparm = delta_i[neuron] * 1
-            gradE.append(dE_dparm)
+
+            if NN.get_bias_state():
+                # Compute dE_dparm: biases
+                dE_dparm = delta_i[neuron] * 1
+                gradE.append(dE_dparm)
 
             for conn in range(input_lines):
                 if layer == 0:
