@@ -134,6 +134,16 @@ class NeuralNetworkFF:
         if self.__bias:
             self.__params_per_layer[layer][:, 0] = new_layer_bias
 
+    def set_layer_params(self, layer, new_layer_params):
+        if self.__bias:
+            new_layer_bias = new_layer_params[:, 0]
+            new_layer_weights = new_layer_params[:, 1]
+
+            self.set_layer_bias(layer, new_layer_bias)
+            self.set_layer_weights(layer, new_layer_weights)
+        else:
+            self.set_layer_weights(layer, new_layer_params)
+
     def get_num_layer(self):
         return self.__num_layers
 
@@ -142,6 +152,9 @@ class NeuralNetworkFF:
 
     def get_output_function(self):
         return self.__output_function
+
+    def get_bias_state(self):
+        return self.__bias
 
     def get_all_params(self):
         return self.__params_per_layer
