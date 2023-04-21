@@ -5,6 +5,9 @@ def cross_entropy_loss(output_lines, targets):
     output_lines = np.array(output_lines)
     targets = np.array(targets)
 
+    output_lines = np.column_stack([output_lines])
+    targets = np.column_stack([targets])
+
     # Check to avoid out-of-range
     if output_lines.size != targets.size:
         print("Output is not compatible with targets.")
@@ -14,8 +17,8 @@ def cross_entropy_loss(output_lines, targets):
     num_of_lines = output_lines.size
     summation = 0
     for line in range(num_of_lines):
-        output = np.max([output_lines[line], 10 ** (-5)])  # To avoid 0
-        summation += targets[line] * np.log2(output)
+        output = np.max([output_lines[line][0], 10 ** (-5)])  # To avoid 0
+        summation += targets[line][0] * np.log2(output)
 
     loss = -summation
     return loss
