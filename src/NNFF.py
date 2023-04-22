@@ -125,7 +125,10 @@ class NeuralNetworkFF:
         return [activation, output]
 
     def set_layer_weights(self, layer, new_layer_weights):
-        if self.__bias:
+        new_weights_cols = new_layer_weights.shape[1]
+        current_weights_cols = self.__params_per_layer[layer].shape[1]
+
+        if self.__bias and (current_weights_cols == new_weights_cols + 1):
             self.__params_per_layer[layer][:, 1:] = new_layer_weights
         else:
             self.__params_per_layer[layer] = new_layer_weights
@@ -137,7 +140,7 @@ class NeuralNetworkFF:
     def set_layer_params(self, layer, new_layer_params):
         if self.__bias:
             new_layer_bias = new_layer_params[:, 0]
-            new_layer_weights = new_layer_params[:, 1]
+            new_layer_weights = new_layer_params[:, 1:]
 
             self.set_layer_bias(layer, new_layer_bias)
             self.set_layer_weights(layer, new_layer_weights)
@@ -164,7 +167,7 @@ class NeuralNetworkFF:
 
     def get_layer_weights(self, layer):
         if self.__bias:
-            return self.__params_per_layer[layer][1, :]
+            return self.__params_per_layer[layer][:, 1:]
         else:
             return self.__params_per_layer[layer]
 
