@@ -6,7 +6,6 @@ import error_functions as ef
 
 
 def back_propagation(NN, input_data, targets):
-    targets = np.column_stack([targets])    # To uniform
 
     num_layers = NN.get_num_layer()
     a_func_type = NN.get_activation_function()
@@ -17,6 +16,9 @@ def back_propagation(NN, input_data, targets):
     output_lines = all_output[-1]
     num_of_output_neurons = all_neurons[-1]
     last_activation = all_activation[-1]
+
+    targets = np.column_stack([targets])    # To uniform
+    input_data = np.column_stack([input_data])
 
     all_delta = []
 
@@ -59,11 +61,10 @@ def back_propagation(NN, input_data, targets):
     for layer in range(num_layers):
         num_neurons_layer = all_neurons[layer]
         delta_i = all_delta[layer]
-        weights_layer = all_weights[layer]
+
         if layer > 0:
             output_layer = all_output[layer-1]
-
-        input_lines = weights_layer.shape[1]
+        input_lines = all_weights[layer].shape[1]
 
         for neuron in range(num_neurons_layer):
 
@@ -74,7 +75,7 @@ def back_propagation(NN, input_data, targets):
 
             for conn in range(input_lines):
                 if layer == 0:
-                    dE_dparm = delta_i[neuron] * input_data[conn]
+                    dE_dparm = delta_i[neuron] * input_data[conn][0]
                 else:
                     dE_dparm = delta_i[neuron] * output_layer[conn][0]
                 gradE.append(dE_dparm)
