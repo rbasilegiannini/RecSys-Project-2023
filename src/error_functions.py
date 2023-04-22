@@ -17,8 +17,8 @@ def cross_entropy_loss(output_lines, targets):
     num_of_lines = output_lines.size
     summation = 0
     for line in range(num_of_lines):
-        output = np.max([output_lines[line][0], 10 ** (-5)])  # To avoid 0
-        summation += targets[line][0] * np.log2(output)
+        output = np.max([output_lines[line][0], 1e-7])  # To avoid 0
+        summation += targets[line][0] * np.log(output)
 
     loss = -summation
     return loss
