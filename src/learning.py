@@ -217,3 +217,37 @@ def plot_errors(net_config_evaluated_list):
     plt.show()
 
 
+def accuracy(NN, samples, labels_one_hot):
+    """
+    This function computes the accuracy of a NN on a specific dataset.
+
+    :param NN:
+        The NN to be evaluated.
+    :param samples:
+        The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param labels_one_hot:
+        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
+
+    :return:
+        The accuracy as a percentage.
+    """
+
+    num_correct = 0
+    num_samples = samples.shape[0]
+    for i in range(num_samples):
+        output = (NN.compute_network(samples[i])[1])[-1]
+
+        # Retrieve the most probable class
+        output = ef.softmax(output)
+        predict_class = np.argmax(output)
+
+        # Compare
+        target = labels_one_hot[i]
+        if target[predict_class] == 1:
+            num_correct += 1
+
+    acc = (num_correct / num_samples) * 100
+
+    return acc
+
+
