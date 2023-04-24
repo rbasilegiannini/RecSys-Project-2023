@@ -90,3 +90,35 @@ def RPROP(NN, grad_E,
         offset += params.size
 
     return NN
+
+
+def compute_error(NN, samples, labels_one_hot):
+    """
+    This function computes the cross entropy soft max error on a specific dataset.
+
+    :param NN:
+        The NN to be evaluated.
+    :param samples:
+        The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param labels_one_hot:
+        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
+    :return:
+        The error's value.
+    """
+
+    dataset = {
+        'samples': samples[:, :],
+        'label': labels_one_hot[:, :]
+    }
+
+    error = 0
+    dataset_size = samples.shape[0]
+    for i in range(dataset_size):
+        all_output = NN.compute_network(dataset['samples'][i])[1]
+        output_net = all_output[-1]
+        target = np.column_stack([dataset['label'][i]])
+        sample_error = ef.cross_entropy_loss(ef.softmax(output_net), target)
+        error += sample_error
+
+    return error/dataset_size
+
