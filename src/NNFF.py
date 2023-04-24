@@ -75,7 +75,7 @@ class NeuralNetworkFF:
         :param input_data:
             Array with input data.
         :return:
-            The output neurons' value.
+            The activation [index 0] and outputs [index 1] of all layers.
         """
 
         # Init input
@@ -146,6 +146,9 @@ class NeuralNetworkFF:
             self.set_layer_weights(layer, new_layer_weights)
         else:
             self.set_layer_weights(layer, new_layer_params)
+
+    def set_all_params(self, new_params):
+        self.__params_per_layer = new_params
 
     def get_num_layer(self):
         return self.__num_layers
