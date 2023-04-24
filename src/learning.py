@@ -1,4 +1,29 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import back_propagation as bp
+import error_functions as ef
+
+
+class NetConfigEvaluated:
+    """
+    This data structure contains information about an evaluated NN.
+    """
+    net_params = []
+    training_error = 0
+    validation_error = 0
+
+    def __init__(self, net_params, training_error, validation_error):
+        """
+        :param net_params:
+            All parameters of the evaluated NN. This input is a list of matrix (one matrix per layer).
+        :param training_error:
+            The training error of the NN.
+        :param validation_error:
+            The validation error of the NN.
+        """
+        self.net_params = net_params
+        self.training_error = training_error
+        self.validation_error = validation_error
 
 
 def RPROP(NN, grad_E,
