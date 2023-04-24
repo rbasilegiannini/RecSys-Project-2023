@@ -122,3 +122,98 @@ def compute_error(NN, samples, labels_one_hot):
 
     return error/dataset_size
 
+
+def learning(NN, max_epoch, train_samples, labels_one_hot):
+    """
+    This function is used to train a NN with a specific training set.
+
+    :param NN:
+        The NN that is about to be trained.
+    :param max_epoch:
+        The max number of the epochs.
+    :param train_samples:
+        The training set's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param labels_one_hot:
+        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
+    :return:
+        The trained NN.
+    """
+
+    train_samples = np.array(train_samples)
+    labels_one_hot = np.array(labels_one_hot)
+    num_samples = train_samples.shape[0]
+    training_set_size = round(num_samples * 0.7)
+
+    training_set = {
+        'samples': train_samples[:training_set_size, :],
+        'label': labels_one_hot[:training_set_size, :]
+    }
+    validation_set = {
+        'samples': train_samples[training_set_size + 1:, :],
+        'label': labels_one_hot[training_set_size+1:, :]
+    }
+
+    # Compute the number of the NN parameters
+    num_params = 0
+    for layer in range(NN.get_num_layer()):
+        num_params += NN.get_layer_params(layer).size
+
+    # Learning
+    net_params_list = []
+    for epoch in range(max_epoch):
+
+        # Compute the error gradient
+        grad_E_tot = np.zeros(num_params)
+        for i in range(training_set_size):
+            grad_E_sample = bp.back_propagation(NN, training_set['samples'][i], training_set['label'][i])
+            grad_E_tot += grad_E_sample
+
+        # Update NN parameters
+        NN = RPROP(NN, grad_E_tot)
+
+        # Compute errors
+        train_error = compute_error(NN, training_set['samples'], training_set['label'])
+        val_error = compute_error(NN, validation_set['samples'], validation_set['label'])
+
+        # Save the evaluated NN's information of this epoch
+        net_params = NetConfigEvaluated(NN.get_all_params(), train_error, val_error)
+        net_params_list.append(net_params)
+
+    # Retrieve best epoch (smallest validation error)
+    all_validation_errors = [net.validation_error for net in net_params_list]
+    all_validation_errors = np.array(all_validation_errors)
+    best_epoch = np.argmin(all_validation_errors)
+
+    # Update NN with best parameters
+    NN.set_all_params(net_params_list[best_epoch].net_params)
+
+    # DEBUG
+    plot_errors(net_params_list)
+
+    return NN
+
+
+def plot_errors(net_config_evaluated_list):
+    """
+    This function is used to plot training and validation errors of an evaluated NN.
+
+    :param net_config_evaluated_list:
+        The list of the NN's configuration (NetConfigEvaluated class), one element per epoch.
+    """
+
+    x = []
+    e_train = []
+    e_val = []
+    for i in range(len(net_config_evaluated_list)):
+        x.append(i)
+        e_train.append(net_config_evaluated_list[i].training_error)
+        e_val.append(net_config_evaluated_list[i].validation_error)
+
+    plt.plot(x, e_train, label='train')
+    plt.plot(x, e_val, label='val')
+    plt.legend()
+    plt.ylabel('Error')
+
+    plt.show()
+
+
