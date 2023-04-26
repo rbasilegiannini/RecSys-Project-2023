@@ -1,11 +1,20 @@
 import numpy as np
 
-import NNFF as nnff
 import activation_functions as af
 import error_functions as ef
 
 
 def back_propagation(NN, input_data, targets):
+    """
+    This function computes the error gradient with the back propagation technique.
+    :param NN:
+        The NN involved in the computation.
+    :param input_data:
+        The NN's input.
+    :param targets:
+        The targets used to compute the error gradient.
+    :return:
+    """
 
     num_layers = NN.get_num_layer()
     a_func_type = NN.get_activation_function()
@@ -57,13 +66,13 @@ def back_propagation(NN, input_data, targets):
 
     # Compute error gradient
     gradE = []
-    output_layer = 0
+    prev_output_layer = 0
     for layer in range(num_layers):
         num_neurons_layer = all_neurons[layer]
         delta_i = all_delta[layer]
 
         if layer > 0:
-            output_layer = all_output[layer-1]
+            prev_output_layer = all_output[layer-1]
         input_lines = all_weights[layer].shape[1]
 
         for neuron in range(num_neurons_layer):
@@ -77,7 +86,7 @@ def back_propagation(NN, input_data, targets):
                 if layer == 0:
                     dE_dparm = delta_i[neuron] * input_data[conn][0]
                 else:
-                    dE_dparm = delta_i[neuron] * output_layer[conn][0]
+                    dE_dparm = delta_i[neuron] * prev_output_layer[conn][0]
                 gradE.append(dE_dparm)
 
     return np.array(gradE)
