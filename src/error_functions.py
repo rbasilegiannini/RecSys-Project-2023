@@ -2,8 +2,6 @@ import numpy as np
 
 
 def cross_entropy_loss(output_lines, targets):
-    output_lines = np.array(output_lines)
-    targets = np.array(targets)
 
     output_lines = np.column_stack([output_lines])
     targets = np.column_stack([targets])
