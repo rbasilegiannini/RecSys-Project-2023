@@ -39,3 +39,23 @@ def get_neighborhoods_encoding(neighborhoods, size):
 
     return binary_neighborhoods
 
+
+def get_binary_one_hot_labels(labels_col):
+    """
+    Convert binary labels in one-hot encoding.
+
+    :param labels_col: 
+        The column with labels. Each row represent a sample's label.
+    :return: 
+    """
+    num_of_samples = labels_col.shape[0]
+    targets_one_hot = np.zeros([num_of_samples, 2])
+
+    for idx_sample in range(num_of_samples):
+        if labels_col[idx_sample] == 1:
+            targets_one_hot[idx_sample][0] = 1
+        else:
+            targets_one_hot[idx_sample][1] = 1
+
+    return targets_one_hot
+
