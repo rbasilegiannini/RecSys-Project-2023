@@ -4,7 +4,7 @@ import back_propagation as bp
 import error_functions as ef
 
 
-class NetConfigEvaluated:
+class EvaluatedNetConfig:
     """
     This data structure contains information about an evaluated NN.
     """
@@ -159,7 +159,7 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
         num_params += NN.get_layer_params(layer).size
 
     # Learning
-    net_params_list = []
+    evaluated_net_config_list = []
     for epoch in range(max_epoch):
 
         # Compute the error gradient
@@ -176,19 +176,19 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
         val_error = compute_error(NN, validation_set['samples'], validation_set['label'])
 
         # Save the evaluated NN's information of this epoch
-        net_params = NetConfigEvaluated(NN.get_all_params(), train_error, val_error)
-        net_params_list.append(net_params)
+        evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
+        evaluated_net_config_list.append(evaluated_net_config)
 
     # Retrieve best epoch (smallest validation error)
-    all_validation_errors = [net.validation_error for net in net_params_list]
+    all_validation_errors = [config.validation_error for config in evaluated_net_config_list]
     all_validation_errors = np.array(all_validation_errors)
     best_epoch = np.argmin(all_validation_errors)
 
     # Update NN with best parameters
-    NN.set_all_params(net_params_list[best_epoch].net_params)
+    NN.set_all_params(evaluated_net_config_list[best_epoch].net_params)
 
     # DEBUG
-    plot_errors(net_params_list)
+    plot_errors(evaluated_net_config_list)
 
     return NN
 
@@ -235,11 +235,12 @@ def accuracy(NN, samples, labels_one_hot):
     num_correct = 0
     num_samples = samples.shape[0]
     for i in range(num_samples):
-        output = (NN.compute_network(samples[i])[1])[-1]
+        all_output = NN.compute_network(samples[i])[1]
+        output_net = all_output[-1]
 
         # Retrieve the most probable class
-        output = ef.softmax(output)
-        predict_class = np.argmax(output)
+        output_net = ef.softmax(output_net)
+        predict_class = np.argmax(output_net)
 
         # Compare
         target = labels_one_hot[i]
