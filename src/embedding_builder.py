@@ -1,6 +1,8 @@
 import numpy as np
 from keras.layers import Conv1D, MaxPooling1D
 
+import utility
+
 
 def get_latent_vectors(urm, latent_factor_size):
     """
@@ -46,7 +48,7 @@ def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
 
     # Finally, we convert the neighborhoods embedding in a numpy array
     # (couldn't do before because normalized neighborhood embedding size wasn't known)
-    normalized_neighborhoods_embedding_matrix = get_matrix_from_list(
+    normalized_neighborhoods_embedding_matrix = utility.get_matrix_from_list(
         normalized_neighborhoods_embedding, normalized_neighborhoods_embedding[0].shape[0])
     return normalized_neighborhoods_embedding_matrix
 
@@ -82,9 +84,23 @@ def normalize_neighborhood_embedding(neighborhood_embedding):
     return averaged_neighborhood_embedding
 
 
-def get_matrix_from_list(list, element_size):
-    matrix = np.zeros((len(list), element_size))
-    for i in range(len(list)):
-        matrix[i, :] = list[i]
+def get_concatenated_embeddings(interaction_functions, users_neighborhood_embedding, items_neighborhood_embedding):
+    number_of_users = interaction_functions.shape[0]
+    number_of_items = interaction_functions.shape[1]
+    embedding_size = interaction_functions.shape[2]
+    neighborhood_embedding_size = users_neighborhood_embedding.shape[1]  # Same as items_neighborhood_embedding
 
-    return matrix
+    concatenated_embeddings = np.zeros((
+        number_of_users,
+        number_of_items,
+        embedding_size + neighborhood_embedding_size * 2))
+
+    for user in range(number_of_users):
+        for item in range(number_of_items):
+            concatenated_embeddings[user, item, :] = np.concatenate((
+                interaction_functions[user, item],
+                users_neighborhood_embedding[user],
+                items_neighborhood_embedding[item]))
+
+    return concatenated_embeddings
+

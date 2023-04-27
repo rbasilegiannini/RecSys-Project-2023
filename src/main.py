@@ -46,6 +46,12 @@ def main():
     users_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_users_neighborhood, items_latent_vector)
     items_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_items_neighborhood, users_latent_vector)
 
+    # Concatenate the three embeddings
+    concatenated_embeddings = emb_builder.get_concatenated_embeddings(
+        interaction_functions, users_neighborhood_embedding, items_neighborhood_embedding)
+
+    pass
+
 
 def test_neural_network():
 
