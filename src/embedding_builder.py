@@ -31,6 +31,9 @@ def get_interaction_functions(users_latent_vector, items_latent_vector, latent_f
     return interaction_functions
 
 
+
+
+
 def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
     # First, we get p_u(N) (or q_i(N)), using a projection of "embeddings"
     # through "neighborhoods_encoding"
@@ -41,7 +44,11 @@ def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
         normalized_neighborhood_embedding = normalize_neighborhood_embedding(neighborhood_embedding)
         normalized_neighborhoods_embedding.append(normalized_neighborhood_embedding)
 
-    return normalized_neighborhoods_embedding
+    # Finally, we convert the neighborhoods embedding in a numpy array
+    # (couldn't do before because normalized neighborhood embedding size wasn't known)
+    normalized_neighborhoods_embedding_matrix = get_matrix_from_list(
+        normalized_neighborhoods_embedding, normalized_neighborhoods_embedding[0].shape[0])
+    return normalized_neighborhoods_embedding_matrix
 
 
 def normalize_neighborhood_embedding(neighborhood_embedding):
@@ -73,3 +80,11 @@ def normalize_neighborhood_embedding(neighborhood_embedding):
     averaged_neighborhood_embedding = averaged_neighborhood_embedding.flatten()
 
     return averaged_neighborhood_embedding
+
+
+def get_matrix_from_list(list, element_size):
+    matrix = np.zeros((len(list), element_size))
+    for i in range(len(list)):
+        matrix[i, :] = list[i]
+
+    return matrix

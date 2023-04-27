@@ -86,4 +86,4 @@ def test_neural_network():
 
 if __name__ == '__main__':
     main()
-    test_neural_network()
+    # test_neural_network()
