@@ -26,70 +26,72 @@ class EvaluatedNetConfig:
         self.validation_error = validation_error
 
 
-def RPROP(NN, grad_E,
-          update_max=50,
-          update_min=1e-6,
-          eta_minus=0.3,
-          eta_plus=1.1):
+class RPROP:
     """
-    This function implement the RPROP rule used to update the parameters of a NN based on the error gradient.
-
-    :param NN:
-        The NN to update.
-    :param grad_E:
-        The error gradient.
-    :param eta_plus:
-        The value of the update increment factor.
-    :param eta_minus:
-        The value of the update decrement factor.
-    :param update_min:
-        Min update value (used to avoid overflow/underflow problems)
-    :param update_max:
-        Max update value (used to avoid overflow/underflow problems)
-    :return:
-        The NN with updated parameters.
+    This class implements the RPROP rule used to update the parameters of a NN based on the error gradient.
     """
-    num_params = grad_E.size
+    def __init__(self, num_params):
+        self._old_grad_E = np.zeros(num_params)
+        self._update_max = 50
+        self._update_min = 1e-6
+        self._eta_minus = 0.3
+        self._eta_plus = 1.1
+        self._update_value = np.full(num_params, 0.01)
+        self._delta = np.zeros(num_params)
 
-    old_grad_E = np.zeros(num_params)
-    update_value = np.full(num_params, 0.01)
-    delta = np.zeros(num_params)
-    num_layers = NN.get_num_layer()
+    def update(self, NN, grad_E):
+        """
+        This method is used to update parameters of the NN.
 
-    offset = 0
-    for layer in range(num_layers):
-        mat_params = NN.get_layer_params(layer)
-        rows = mat_params.shape[0]
-        cols = mat_params.shape[1]
-        params = mat_params.flatten()
+        :param NN:
+            The NN to update.
+        :param grad_E:
+            The current error gradient.
 
-        for i in range(params.size):
-            old_grad_E_i = old_grad_E[offset + i]
-            current_grad_E_i = grad_E[offset + i]
+        :return:
+            The NN with updated parameters.
+        """
 
-            if (old_grad_E_i * current_grad_E_i) > 0:
-                update_value[offset + i] = min(update_value[offset + i] * eta_plus, update_max)
-                delta[offset + i] = -np.sign(current_grad_E_i) * update_value[offset + i]
-                params[i] += delta[offset + i]
-                old_grad_E_i = current_grad_E_i
+        num_layers = NN.get_num_layer()
+        offset = 0
+        for layer in range(num_layers):
+            mat_params = NN.get_layer_params(layer)
+            rows = mat_params.shape[0]
+            cols = mat_params.shape[1]
+            params = mat_params.flatten()
 
-            elif (old_grad_E_i * current_grad_E_i) < 0:
-                params[i] -= delta[offset + i]  # Backtracking
-                update_value[offset + i] = max(update_value[offset + i] * eta_minus, update_min)
-                old_grad_E_i = 0
+            for i in range(params.size):
 
-            else:
-                delta[offset + i] = -np.sign(current_grad_E_i) * update_value[offset + i]
-                params[i] += delta[offset + i]
-                old_gradE_i = current_grad_E_i
+                old_grad_E_i = self._old_grad_E[offset + i]
+                current_grad_E_i = grad_E[offset + i]
 
-        # Set new parameters
-        mat_params = np.reshape(params, [rows, cols])
-        NN.set_layer_params(layer, mat_params)
+                if (old_grad_E_i * current_grad_E_i) > 0:
+                    self._update_value[offset + i] = min(self._update_value[offset + i] * self._eta_plus,
+                                                         self._update_max)
+                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
+                    params[i] += self._delta[offset + i]
+                    old_grad_E_i = current_grad_E_i
 
-        offset += params.size
+                elif (old_grad_E_i * current_grad_E_i) < 0:
+                    params[i] -= self._delta[offset + i]  # Backtracking
+                    self._update_value[offset + i] = max(self._update_value[offset + i] * self._eta_minus,
+                                                         self._update_min)
+                    old_grad_E_i = 0
 
-    return NN
+                else:
+                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
+                    params[i] += self._delta[offset + i]
+                    old_grad_E_i = current_grad_E_i
+
+                self._old_grad_E[offset + i] = old_grad_E_i
+
+            # Set new parameters
+            mat_params = np.reshape(params, [rows, cols])
+            NN.set_layer_params(layer, mat_params)
+
+            offset += params.size
+
+        return NN
 
 
 def compute_error(NN, samples, labels_one_hot):
@@ -159,6 +161,7 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
         num_params += NN.get_layer_params(layer).size
 
     # Learning
+    rprop = RPROP(num_params)
     evaluated_net_config_list = []
     for epoch in range(max_epoch):
 
@@ -169,7 +172,7 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
             grad_E_tot += grad_E_sample
 
         # Update NN parameters
-        NN = RPROP(NN, grad_E_tot)
+        rprop.update(NN, grad_E_tot)
 
         # Compute errors
         train_error = compute_error(NN, training_set['samples'], training_set['label'])
