@@ -59,7 +59,7 @@ def normalize_neighborhood_embedding(neighborhood_embedding):
         neighborhood_embedding.shape[0], neighborhood_embedding.shape[1], 1)
 
     # |N| x k x |kernels|
-    convoluted_neighborhood_embedding = Conv1D(32, 5, activation='relu',
+    convoluted_neighborhood_embedding = Conv1D(2, 5, activation='relu',
                                                padding='same',
                                                input_shape=reshaped_neighborhood_embedding[1:]
                                                )(reshaped_neighborhood_embedding)

@@ -6,6 +6,7 @@ import embedding_builder as emb_builder
 import learning as learn
 import encoder
 import NNFF
+import MLP_dataset_builder as mlp_builder
 
 from sklearn.datasets import load_breast_cancer
 import sklearn.utils
@@ -16,7 +17,7 @@ ITEMS_SIZE = 1682
 
 hyperparams = {
     "resolution": 1,
-    "k": 10
+    "k": 3
 }
 
 
@@ -50,9 +51,8 @@ def main():
     user_item_concatenated_embeddings = emb_builder.get_concatenated_embeddings(
         interaction_functions, users_neighborhood_embedding, items_neighborhood_embedding)
 
-
-    training_set = get_training_set(urm, user_item_concatenated_embeddings)
-
+    # Get the training set formatted for the MLP
+    training_set = mlp_builder.get_training_set(urm, user_item_concatenated_embeddings)
 
 
 def test_neural_network():
