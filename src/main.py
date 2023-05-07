@@ -54,16 +54,24 @@ def main():
     # Get the training set formatted for the MLP
     training_set = mlp_builder.get_training_set(urm, user_item_concatenated_embeddings)
 
+    # Test of integration component and prediction component combination
+    test_neural_network(training_set)
 
-def test_neural_network():
+
+def test_neural_network(training_set):
 
     for i in range(10):
 
         # Compose dataset
-        [samples, labels] = load_breast_cancer(return_X_y=True)
-        [samples, labels] = sklearn.utils.shuffle(samples, labels)
+        # [samples, labels] = load_breast_cancer(return_X_y=True)
+        # [samples, labels] = sklearn.utils.shuffle(samples, labels)
+        #
+        # samples = learn.normalize_samples(samples, -0.5, 0.5)
 
-        samples = learn.normalize_samples(samples, -0.5, 0.5)
+        np.random.shuffle(training_set)
+        # training_set = training_set[:1000, :]
+        samples = training_set[:, :-1]
+        labels = training_set[:, -1]
 
         test_set_size = round(0.3 * samples.shape[0])
         training_set_size = samples.shape[0] - test_set_size
@@ -71,22 +79,22 @@ def test_neural_network():
         training_set_samples = samples[:training_set_size, :]
         training_set_labels = labels[:training_set_size]
 
-        test_set_samples = samples[(training_set_size+1):, :]
-        test_set_labels = labels[(training_set_size+1):]
+        test_set_samples = samples[training_set_size:, :]
+        test_set_labels = labels[training_set_size:]
 
         # Convert labels in one-hot encoding
         training_labels_one_hot = encoder.get_binary_one_hot_labels(training_set_labels)
         test_labels_one_hot = encoder.get_binary_one_hot_labels(test_set_labels)
 
         # Learning
-        NN = NNFF.NeuralNetworkFF(30,
+        NN = NNFF.NeuralNetworkFF(samples.shape[1],
                                   15,
                                   [5],
                                   2,
                                   'sigmoid',
                                   bias=0)
 
-        NN = learn.learning(NN, 150, training_set_samples, training_labels_one_hot)
+        NN = learn.learning(NN, 100, training_set_samples, training_labels_one_hot)
         acc = learn.accuracy(NN, test_set_samples, test_labels_one_hot)
 
         print('Accuracy: ' + str(acc) + '%')
@@ -94,4 +102,3 @@ def test_neural_network():
 
 if __name__ == '__main__':
     main()
-    # test_neural_network()
