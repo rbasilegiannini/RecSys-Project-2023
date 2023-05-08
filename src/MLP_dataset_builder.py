@@ -23,7 +23,7 @@ def get_training_set(urm, user_item_concatenated_embeddings):
         training_set, interacting_users, interacting_items, number_of_interactions, user_item_concatenated_embeddings)
 
     # Iterate and insert negative cases in training set with label 0
-    insert_negative_cases_embeddings_in_training_set(training_set, users_negative_cases, number_of_interactions,
+    training_set = insert_negative_cases_embeddings_in_training_set(training_set, users_negative_cases, number_of_interactions,
                                                      urm.shape[0], user_item_concatenated_embeddings)
 
     return training_set
@@ -81,11 +81,11 @@ def insert_interaction_embeddings_in_training_set(training_set, interacting_user
     return training_set
 
 
-def insert_negative_cases_embeddings_in_training_set(training_set, users_not_interacting_items, number_of_interactions,
+def insert_negative_cases_embeddings_in_training_set(training_set, users_negative_cases, number_of_interactions,
                                                      number_of_users, user_item_concatenated_embeddings):
     negative_cases_base_index = number_of_interactions
     for user_index in range(number_of_users):
-        user_negative_cases = users_not_interacting_items[user_index]
+        user_negative_cases = users_negative_cases[user_index]
         user_negative_cases_embeddings = np.take(
             user_item_concatenated_embeddings[user_index], user_negative_cases, axis=0)
 
