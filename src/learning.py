@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import back_propagation as bp
 import error_functions as ef
+import time
 
 
 class EvaluatedNetConfig:
@@ -164,6 +165,8 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
     rprop = RPROP(num_params)
     evaluated_net_config_list = []
     for epoch in range(max_epoch):
+        print("Run epoch: " + str(epoch+1) + "...", end="")
+        start = time.time()
 
         # Compute the error gradient
         grad_E_tot = np.zeros(num_params)
@@ -182,6 +185,10 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
         evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
         evaluated_net_config_list.append(evaluated_net_config)
 
+        end = time.time()
+        timing = str(round(end-start, 2))
+        print(" Complete. (" + timing + "s) ")
+
     # Retrieve best epoch (smallest validation error)
     all_validation_errors = [config.validation_error for config in evaluated_net_config_list]
     all_validation_errors = np.array(all_validation_errors)
@@ -190,7 +197,6 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
     # Update NN with best parameters
     NN.set_all_params(evaluated_net_config_list[best_epoch].net_params)
 
-    # DEBUG
     plot_errors(evaluated_net_config_list)
 
     return NN
