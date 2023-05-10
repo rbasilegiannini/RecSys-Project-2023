@@ -97,10 +97,7 @@ class NNCF:
         training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
         self.__learning_MLP(training_set, 200)
 
-    def get_recommendations(self, user, k):
-
-        # Retrieves all items that the user has not interacted with
-        items_not_interacted = np.array(np.where(self.__urm[user] == 0))
+    def get_recommendations(self, user, items_not_interacted, k):
 
         # For each non-interacting item build (u, i) interaction
         user_item_concatenated_embeddings = []
@@ -113,9 +110,10 @@ class NNCF:
             probability_item = self.__MLP.compute_network(user_item_concatenated_embedding)
             probability_items_list.append(probability_item)
 
-        probability_items = np.sort(probability_items_list)[::-1]   # Sort in decreasing order
+        # Sort in decreasing order. "argsort" because we want the items' id
+        recommendations = np.argsort(probability_items_list)[::-1]
 
-        return probability_items[:k]
+        return recommendations[:k]
 
 
 
