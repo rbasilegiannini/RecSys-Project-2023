@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 import dataset_extractor as ds_extractor
@@ -13,8 +14,11 @@ USERS_SIZE = 943
 ITEMS_SIZE = 1682
 
 hyperparams = {
-    "resolution": 1,
-    "k": 3
+    "res": 0.01,
+    "k": 10,
+    "hidden layers": 1,
+    "neurons": 5,
+    "activation": 'sigmoid'
 }
 
 
@@ -33,7 +37,7 @@ def main():
 
     # Retrieve neighborhoods and binary encoding
     print("Neighborhoods extraction...", end="")
-    [users_neighborhood, items_neighborhood] = nb_builder.extract_neighborhood(urm, hyperparams['resolution'])
+    [users_neighborhood, items_neighborhood] = nb_builder.extract_neighborhood(urm, hyperparams['res'])
     binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, ITEMS_SIZE)
     binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, USERS_SIZE)
     print(" Complete.")
@@ -66,16 +70,18 @@ def main():
 
 def test_neural_network(training_set):
 
-    for i in range(10):
+    num_test = 3
+    accuracies = []
+    for i in range(num_test):
         print("\nRUN TEST NUMBER: " + str(i+1) + "\n")
 
         np.random.shuffle(training_set)
-        training_set = training_set[:50000, :]
+        training_set = training_set[:200000, :]
         samples = training_set[:, :-1]
         labels = training_set[:, -1]
 
         print("Samples normalization...", end="")
-        samples = learn.normalize_samples(samples, -0.5, 0.5)
+        # samples = learn.normalize_samples(samples, -0.5, 0.5)
         print(" Complete.")
 
         test_set_size = round(0.3 * samples.shape[0])
@@ -87,14 +93,17 @@ def test_neural_network(training_set):
         test_set_samples = samples[training_set_size:, :]
         test_set_labels = labels[training_set_size:]
 
+        print("Training samples: " + str(len(training_set_samples)))
+        print("Test samples: " + str(len(test_set_samples)))
+
         # Convert labels in one-hot encoding
         training_labels_one_hot = encoder.get_binary_one_hot_labels(training_set_labels)
         test_labels_one_hot = encoder.get_binary_one_hot_labels(test_set_labels)
 
         # Learning
         NN = NNFF.NeuralNetworkFF(samples.shape[1],
-                                  20,
-                                  [10],
+                                  5,
+                                  [5],
                                   2,
                                   'sigmoid',
                                   bias=0)
@@ -103,6 +112,17 @@ def test_neural_network(training_set):
         acc = learn.accuracy(NN, test_set_samples, test_labels_one_hot)
 
         print('\nAccuracy: ' + str(acc) + '%')
+        accuracies.append(acc)
+
+    x = range(num_test)
+    plt.plot(x, accuracies)
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    plt.show()
+
+    accurray = np.array(accuracies)
+    print(str(round(accurray.mean(), 2)) + '%')
 
 
 if __name__ == '__main__':
