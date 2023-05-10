@@ -12,6 +12,9 @@ ITEMS_SIZE = 1682
 
 
 class NNCF:
+    """
+    This class implements the Neighborhood-based Neural Collaborative Filtering model.
+    """
 
     def __init__(self, urm, res, k, hidden_layers, neurons, activation):
         self.__MLP = None
@@ -64,16 +67,7 @@ class NNCF:
         training_set_samples = learn.normalize_samples(training_set_samples, -0.5, 0.5)
         print(" Complete.")
 
-        # test_set_size = round(0.3 * samples.shape[0])
-        # training_set_size = samples.shape[0] - test_set_size
-
-        # training_set_samples = samples[:training_set_size, :]
-        # training_set_labels = labels[:training_set_size]
-
-        # test_set_samples = samples[training_set_size:, :]
-
         print("Training samples: " + str(len(training_set_samples)))
-        # print("Test samples: " + str(len(test_set_samples)))
 
         # Convert labels in one-hot encoding
         training_labels_one_hot = encoder.get_binary_one_hot_labels(training_set_labels)
@@ -94,12 +88,23 @@ class NNCF:
         self.__MLP = learn.learning(self.__MLP, max_epoch, training_set_samples, training_labels_one_hot)
 
     def __learning_NNCF(self):
-
         self.__run_integration_component()
         training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
         self.__learning_MLP(training_set, 1)
 
     def get_recommendations(self, user, items_not_interacted, k):
+        """
+        This function returns the first k recommended items.
+
+        :param user:
+            The user who wants the recommendations.
+        :param items_not_interacted:
+            A list of items that the user has not interacted with.
+        :param k:
+            The number of recommendations to return.
+        :return:
+            A list with the first k recommended items sorted by best.
+        """
 
         # For each non-interacting item build (u, i) interaction
         user_item_concatenated_embeddings = []
