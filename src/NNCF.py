@@ -5,6 +5,7 @@ import NNFF
 import learning as learn
 import encoder
 import numpy as np
+import error_functions as ef
 
 USERS_SIZE = 943
 ITEMS_SIZE = 1682
@@ -55,6 +56,7 @@ class NNCF:
     def __learning_MLP(self, training_set, max_epoch):
 
         np.random.shuffle(training_set)
+        # training_set = training_set[:1000, :]
         training_set_samples = training_set[:, :-1]
         training_set_labels = training_set[:, -1]
 
@@ -95,7 +97,7 @@ class NNCF:
 
         self.__run_integration_component()
         training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
-        self.__learning_MLP(training_set, 200)
+        self.__learning_MLP(training_set, 1)
 
     def get_recommendations(self, user, items_not_interacted, k):
 
@@ -107,13 +109,19 @@ class NNCF:
         # Retrieve K most probability items
         probability_items_list = []
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
-            probability_item = self.__MLP.compute_network(user_item_concatenated_embedding)
-            probability_items_list.append(probability_item)
+            output_lines = self.__MLP.compute_network(user_item_concatenated_embedding)[1][-1]
+            probability_items_list.append((ef.softmax(output_lines)).max())
 
-        # Sort in decreasing order. "argsort" because we want the items' id
-        recommendations = np.argsort(probability_items_list)[::-1]
+        # Sort in decreasing order
+        best_items = np.argsort(probability_items_list)[::-1]
+        best_items = best_items[:k]
+        recommendations = []
 
-        return recommendations[:k]
+        # Retrieve recommendations
+        for best_item in best_items:
+            recommendations.append(items_not_interacted[best_item])
+
+        return recommendations
 
 
 
