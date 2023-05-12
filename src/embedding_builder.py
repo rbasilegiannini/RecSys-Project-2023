@@ -72,6 +72,7 @@ def normalize_neighborhood_embedding(neighborhood_embedding):
     latent_factors_size = pooled_neighborhood_embedding.shape[1]
     kernels_size = pooled_neighborhood_embedding.shape[2]
     averaged_neighborhood_embedding = np.zeros((latent_factors_size, kernels_size))
+
     for factor_index in range(latent_factors_size):
         for kernel_index in range(kernels_size):
             averaged_neighborhood_embedding[factor_index, kernel_index] = np.average(

@@ -21,7 +21,7 @@ def main():
     print("URM extraction...", end="")
     dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
     urm = dataset_extractor.get_urm()
-    # test_items_list = dataset_extractor.get_test_items()
+    # test_items = dataset_extractor.get_test_items()
     print(" Complete.")
 
     net = NNCF.NNCF(urm,
