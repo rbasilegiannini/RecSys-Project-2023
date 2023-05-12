@@ -4,6 +4,7 @@ import os
 
 class DatasetExtractor:
     def __init__(self, users_dimension, items_dimension):
+        self.__urm = None
         self.users_size = users_dimension
         self.items_size = items_dimension
         self.test_items = []
@@ -12,7 +13,7 @@ class DatasetExtractor:
         dataset_entries = self.get_dataset_entries()
         self.choose_test_items_from_dataset(dataset_entries)
         urm = self.fill_urm(dataset_entries)
-        urm = self.reset_test_items(urm)
+        self.__urm = self.reset_test_items(urm)
         return urm
 
     def get_dataset_entries(self):
@@ -55,3 +56,8 @@ class DatasetExtractor:
 
     def get_test_items(self):
         return self.test_items
+
+    def get_non_interacted_items(self, user):
+        items = list(np.where(self.__urm[user] == 0)[0])
+        return items
+
