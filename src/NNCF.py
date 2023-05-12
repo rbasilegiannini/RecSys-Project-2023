@@ -13,7 +13,7 @@ class NNCF:
     This class implements the Neighborhood-based Neural Collaborative Filtering model.
     """
 
-    def __init__(self, urm, res, k, hidden_layers, neurons, activation):
+    def __init__(self, urm, res, k, hidden_layers, neurons, activation, max_epoch):
         self.__MLP = None
         self.__user_item_concatenated_embeddings = None
         self.__urm = urm
@@ -22,6 +22,7 @@ class NNCF:
         self.__number_hidden_layers = hidden_layers
         self.__neurons = neurons
         self.__activation = activation
+        self.__max_epoch = max_epoch
 
         self.__learning_NNCF()
 
@@ -90,8 +91,9 @@ class NNCF:
     def __learning_NNCF(self):
         self.__run_integration_component()
         training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
-        self.__learning_MLP(training_set, 2)
+        self.__learning_MLP(training_set, self.__max_epoch)
 
+    # Interface
     def get_recommendations(self, user, items_not_interacted, k):
         """
         This function returns the first k recommended items.
