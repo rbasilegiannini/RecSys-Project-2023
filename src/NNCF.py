@@ -7,9 +7,6 @@ import encoder
 import numpy as np
 import error_functions as ef
 
-USERS_SIZE = 943
-ITEMS_SIZE = 1682
-
 
 class NNCF:
     """
@@ -33,9 +30,12 @@ class NNCF:
         print("Run Integration Component's phase...", end="")
 
         # Retrieve neighborhoods and binary encoding
+        num_of_users = self.__urm.shape[0]
+        num_of_items = self.__urm.shape[1]
+
         [users_neighborhood, items_neighborhood] = nb_builder.extract_neighborhood(self.__urm, self.__res)
-        binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, ITEMS_SIZE)
-        binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, USERS_SIZE)
+        binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, num_of_items)
+        binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, num_of_users)
 
         # Compute latent vectors
         [users_latent_vector, items_latent_vector] = emb_builder.get_latent_vectors(self.__urm, self.__latent_factor)
@@ -90,7 +90,7 @@ class NNCF:
     def __learning_NNCF(self):
         self.__run_integration_component()
         training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
-        self.__learning_MLP(training_set, 1)
+        self.__learning_MLP(training_set, 2)
 
     def get_recommendations(self, user, items_not_interacted, k):
         """
