@@ -1,3 +1,4 @@
+import random
 import networkx as nx
 import numpy as np
 
@@ -9,6 +10,7 @@ def generate_bipartite_network(urm):
     :return:
         A bipartite graph and the offset between user's and item's ID
     """
+    
     bi_graph = nx.Graph()
 
     # initialize interaction dct with user nodes
@@ -60,14 +62,14 @@ def extract_neighborhood(urm, resolution=0.5):
     resolution = res_min + slope * (resolution - input_min)
 
     # extract communities from URM
-    users_neighborhood = []
-    items_neighborhood = []
-
     [bi_graph, offset] = generate_bipartite_network(urm)
     communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
     item_nodes = set(bi_graph) - user_nodes
+
+    users_neighborhood = np.empty(shape=len(user_nodes), dtype=np.ndarray)
+    items_neighborhood = np.empty(shape=len(item_nodes), dtype=np.ndarray)
 
     # for each community, retrieve the user's (item's) neighborhood
     for community in communities:
@@ -76,22 +78,33 @@ def extract_neighborhood(urm, resolution=0.5):
             neighborhood = np.array(list(community))
 
             if node in user_nodes:  # node is a user
+                user = node
                 # Remove other users from the community
                 for n in neighborhood:
                     if n in user_nodes:
                         neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
+                neighborhood = neighborhood - offset
 
                 # Collect the user's neighborhood (of items)
-                users_neighborhood.append(neighborhood - offset)
+                if neighborhood.size == 0:
+                    user_interactions = urm[user, :]
+                    neighborhood = handle_empty_neighborhood(user_interactions)
+
+                users_neighborhood[user] = neighborhood
 
             else:  # node is an item
+                item = node - offset
                 # Remove other items from the community
                 for n in neighborhood:
                     if n in item_nodes:
                         neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
 
                 # Collect the item's neighborhood (of users)
-                items_neighborhood.append(neighborhood)
+                if neighborhood.size == 0:
+                    item_interactions = urm[:, item]
+                    neighborhood = handle_empty_neighborhood(item_interactions)
+
+                items_neighborhood[item] = neighborhood
 
     return [users_neighborhood, items_neighborhood]
 
