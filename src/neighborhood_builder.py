@@ -94,3 +94,24 @@ def extract_neighborhood(urm, resolution=0.5):
                 items_neighborhood.append(neighborhood)
 
     return [users_neighborhood, items_neighborhood]
+
+
+def handle_empty_neighborhood(node_interactions):
+    """
+    Empty neighborhood handler. Fill the neighborhood with direct node interactors.
+    If there aren't direct node interactors the neighborhood will contain only one random neighbor.
+    :param node_interactions:
+        Node's direct interactions.
+    :return:
+        Neighborhood filled.
+    """
+
+    if max(node_interactions) == 0:
+        random_user = random.randint(0, node_interactions.size)
+        user_interacted = np.array([random_user])
+    else:
+        user_interacted = np.where(node_interactions == 1)
+
+    neighborhood = np.array(user_interacted)
+
+    return neighborhood
