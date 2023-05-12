@@ -119,7 +119,8 @@ class NNCF:
 
         # Sort in decreasing order
         best_items = np.argsort(probability_items_list)[::-1]
-        best_items = best_items[:k]
+        if k < best_items.size:
+            best_items = best_items[:k]
         recommendations = []
 
         # Retrieve recommendations
