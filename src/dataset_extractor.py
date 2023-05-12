@@ -3,29 +3,18 @@ import os
 
 
 class DatasetExtractor:
+    """
+    This class is used to extract data from the dataset MovieLens.
+    """
     def __init__(self, users_dimension, items_dimension):
-        self.__urm = None
         self.users_size = users_dimension
         self.items_size = items_dimension
-        self.test_items = []
+        self.__urm = None
+        self.test_items = None
 
-    def get_urm(self):
-        dataset_entries = self.get_dataset_entries()
-        self.choose_test_items_from_dataset(dataset_entries)
-        urm = self.fill_urm(dataset_entries)
-        self.__urm = self.reset_test_items(urm)
-        return urm
+        self.__compute_urm()
 
-    def get_dataset_entries(self):
-        absolute_path = os.path.dirname(__file__)
-        dataset_path = absolute_path.replace("src", "res")
-        dataset_path = os.path.join(dataset_path, "u.data")
-
-        dataset_file = open(dataset_path, 'r')
-        dataset_text = dataset_file.read()
-        return dataset_text.split("\n")
-
-    def choose_test_items_from_dataset(self, dataset_entries):
+    def __choose_test_items_from_dataset(self, dataset_entries):
         interaction_timestamps = np.zeros((self.users_size, self.items_size))
 
         for entry in dataset_entries:
@@ -39,7 +28,7 @@ class DatasetExtractor:
 
         self.test_items = np.argmax(interaction_timestamps, axis=1)
 
-    def fill_urm(self, dataset_entries):
+    def __fill_urm(self, dataset_entries):
         urm = np.zeros((self.users_size, self.items_size), dtype=int)
         for entry in dataset_entries:
             entry_fields = entry.split("\t")
@@ -47,12 +36,28 @@ class DatasetExtractor:
                 user_id = int(entry_fields[0])
                 item_id = int(entry_fields[1])
                 urm[user_id - 1][item_id - 1] = 1
-        return urm
+        self.__urm = urm
 
-    def reset_test_items(self, urm):
+    def __reset_test_items(self):
         for user in range(self.users_size):
-            urm[user, self.test_items[user]] = 0
-        return urm
+            self.__urm[user, self.test_items[user]] = 0
+
+    def __compute_urm(self):
+        absolute_path = os.path.dirname(__file__)
+        dataset_path = absolute_path.replace("src", "res")
+        dataset_path = os.path.join(dataset_path, "u.data")
+
+        dataset_file = open(dataset_path, 'r')
+        dataset_text = dataset_file.read()
+        dataset_entries = dataset_text.split("\n")
+
+        self.__choose_test_items_from_dataset(dataset_entries)
+        self.__fill_urm(dataset_entries)
+        self.__reset_test_items()
+
+    # Interface
+    def get_urm(self):
+        return self.__urm
 
     def get_test_items(self):
         return self.test_items
