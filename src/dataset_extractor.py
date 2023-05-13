@@ -6,16 +6,18 @@ class DatasetExtractor:
     """
     This class is used to extract data from the dataset MovieLens.
     """
+
     def __init__(self, users_dimension, items_dimension):
-        self.users_size = users_dimension
-        self.items_size = items_dimension
+        self.__users_size = users_dimension
+        self.__items_size = items_dimension
+
         self.__urm = None
-        self.test_items = None
+        self.__test_items = None
 
         self.__compute_urm()
 
     def __choose_test_items_from_dataset(self, dataset_entries):
-        interaction_timestamps = np.zeros((self.users_size, self.items_size))
+        interaction_timestamps = np.zeros((self.__users_size, self.__items_size))
 
         for entry in dataset_entries:
             entry_fields = entry.split("\t")
@@ -26,10 +28,10 @@ class DatasetExtractor:
 
                 interaction_timestamps[user_id - 1][item_id - 1] = timestamp
 
-        self.test_items = np.argmax(interaction_timestamps, axis=1)
+        self.__test_items = np.argmax(interaction_timestamps, axis=1)
 
     def __fill_urm(self, dataset_entries):
-        urm = np.zeros((self.users_size, self.items_size), dtype=int)
+        urm = np.zeros((self.__users_size, self.__items_size), dtype=int)
         for entry in dataset_entries:
             entry_fields = entry.split("\t")
             if entry_fields[0] != '' and entry_fields[1] != '':
@@ -39,8 +41,8 @@ class DatasetExtractor:
         self.__urm = urm
 
     def __reset_test_items(self):
-        for user in range(self.users_size):
-            self.__urm[user, self.test_items[user]] = 0
+        for user in range(self.__users_size):
+            self.__urm[user, self.__test_items[user]] = 0
 
     def __compute_urm(self):
         absolute_path = os.path.dirname(__file__)
@@ -56,13 +58,13 @@ class DatasetExtractor:
         self.__reset_test_items()
 
     # Interface
+
     def get_urm(self):
         return self.__urm
 
     def get_test_items(self):
-        return self.test_items
+        return self.__test_items
 
     def get_non_interacted_items(self, user):
         items = list(np.where(self.__urm[user] == 0)[0])
         return items
-

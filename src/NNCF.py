@@ -1,6 +1,5 @@
 import neighborhood_builder as nb_builder
 import embedding_builder as emb_builder
-import MLP_dataset_builder as mlp_builder
 import NNFF
 import learning as learn
 import encoder

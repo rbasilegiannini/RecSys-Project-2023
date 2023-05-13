@@ -10,7 +10,7 @@ def generate_bipartite_network(urm):
     :return:
         A bipartite graph and the offset between user's and item's ID
     """
-    
+
     bi_graph = nx.Graph()
 
     # initialize interaction dct with user nodes
