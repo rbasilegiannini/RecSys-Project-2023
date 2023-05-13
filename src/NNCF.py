@@ -13,7 +13,7 @@ class NNCF:
     This class implements the Neighborhood-based Neural Collaborative Filtering model.
     """
 
-    def __init__(self, urm, res, k, hidden_layers, neurons, activation, max_epoch):
+    def __init__(self, urm, res, k, hidden_layers, neurons, activation):
         self.__MLP = None
         self.__user_item_concatenated_embeddings = None
         self.__urm = urm
@@ -22,11 +22,14 @@ class NNCF:
         self.__number_hidden_layers = hidden_layers
         self.__neurons = neurons
         self.__activation = activation
-        self.__max_epoch = max_epoch
 
-        self.__learning_NNCF()
+    def run_integration_component(self):
+        """
+        This method run the integration component phase.
 
-    def __run_integration_component(self):
+        :return:
+            The user-item concatenated embeddings.
+        """
 
         print("Run Integration Component's phase...", end="")
 
@@ -57,10 +60,26 @@ class NNCF:
 
         print(" Complete.")
 
-    def __learning_MLP(self, training_set, max_epoch):
+        return self.__user_item_concatenated_embeddings
+
+    def learning_MLP(self, training_set, max_epochs=10):
+        """
+        This method performs the learning of the Multi-Layer Perceptron.
+        It's mandatory to run the integration component phase first.
+
+        :param training_set:
+            The training set.
+        :param max_epochs:
+            The max number of epochs (default = 10)
+
+        """
+
+        # Check integration component phase
+        if self.__user_item_concatenated_embeddings is None:
+            print("[NNCF] Run integration component phase is mandatory!")
+            return
 
         np.random.shuffle(training_set)
-        # training_set = training_set[:1000, :]
         training_set_samples = training_set[:, :-1]
         training_set_labels = training_set[:, -1]
 
@@ -86,14 +105,8 @@ class NNCF:
                                           self.__activation,
                                           bias=0)
 
-        self.__MLP = learn.learning(self.__MLP, max_epoch, training_set_samples, training_labels_one_hot)
+        self.__MLP = learn.learning(self.__MLP, max_epochs, training_set_samples, training_labels_one_hot)
 
-    def __learning_NNCF(self):
-        self.__run_integration_component()
-        training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
-        self.__learning_MLP(training_set, self.__max_epoch)
-
-    # Interface
     def get_recommendations(self, user, items_not_interacted, k):
         """
         This function returns the first k recommended items.
@@ -107,6 +120,11 @@ class NNCF:
         :return:
             A list with the first k recommended items sorted by best.
         """
+
+        # Check MLP
+        if self.__MLP is None:
+            print("[NNCF] Learning MLP is mandatory!")
+            return
 
         # For each non-interacting item build (u, i) interaction
         user_item_concatenated_embeddings = []
