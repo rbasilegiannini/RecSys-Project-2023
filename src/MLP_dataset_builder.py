@@ -79,7 +79,6 @@ def insert_interaction_embeddings_in_training_set(training_set, interacting_user
 
         training_set[interaction_pair_index, :user_item_concatenated_embeddings.shape[2]] = \
             user_item_concatenated_embeddings[current_interacting_user, current_interacting_item]
-        # training_set[interaction_pair_index, :20] = np.repeat(interaction_pair_index, 20)
         training_set[interaction_pair_index, -1] = 1
 
     return training_set
