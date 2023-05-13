@@ -132,7 +132,9 @@ class NNCF:
         # Retrieve K most probability items
         probability_items_list = []
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
-            output_lines = self.__MLP.compute_network(user_item_concatenated_embedding)[1][-1]
+            input_data = learn.normalize_samples(user_item_concatenated_embedding, -0.5, 0.5)
+            output_lines = self.__MLP.compute_network(input_data)[1][-1]
+            # REMOVE SOFTMAX
             probability_items_list.append((ef.softmax(output_lines)).max())
 
         # Sort in decreasing order
