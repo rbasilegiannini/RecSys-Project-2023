@@ -50,7 +50,7 @@ def main():
 def evaluate_recsys(dataset_extractor, net, top_k, test_items):
     hit = 0
     for user in range(USERS_SIZE):
-        items_not_interacted = dataset_extractor.get_non_interacted_items(user)
+        items_not_interacted = dataset_extractor.get_not_interacted_items(user)
         recommendations = net.get_recommendations(user, items_not_interacted, top_k)
 
         if test_items[user] in recommendations:
