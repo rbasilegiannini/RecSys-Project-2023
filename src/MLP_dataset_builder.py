@@ -2,14 +2,14 @@ import numpy as np
 from numpy.random import default_rng
 
 
-def get_training_set(urm, user_item_concatenated_embeddings):
+def get_training_set(urm, user_item_concatenated_embeddings, test_items):
     # Get interaction pairs to put into the training set
     interacting_users, interacting_items = get_interaction_pairs(urm)
     # urm[int_users[i], int_items[i]] is an interaction pair
 
     # Get 4 negative cases for each interaction pair,
     # that are 4 user-item pairs where interaction didn't occur
-    users_negative_cases = get_negative_cases(urm)
+    users_negative_cases = get_negative_cases(urm, test_items)
 
     number_of_negative_cases = get_number_of_negative_cases(users_negative_cases)
 
@@ -43,24 +43,28 @@ def get_interaction_pairs(urm):
     return interacting_users, interacting_items
 
 
-def get_negative_cases(urm):
+def get_negative_cases(urm, test_items):
     users_number_of_interactions = np.count_nonzero(urm, axis=1)
     users_negative_cases = []
     for user in range(urm.shape[0]):
-        users_negative_cases.append(get_user_negative_cases(user, urm, users_number_of_interactions[user]))
+        users_negative_cases.append(get_user_negative_cases(user, urm, users_number_of_interactions[user], test_items[user]))
+
     return users_negative_cases
 
 
-def get_user_negative_cases(interacting_user, urm, number_of_interactions):
+def get_user_negative_cases(interacting_user, urm, number_of_interactions, test_item):
     not_interacted_items_tuples = np.where(urm[interacting_user] == 0)
-    not_interacted_items = list(zip(not_interacted_items_tuples))
+    not_interacted_items = list(not_interacted_items_tuples[0])
+
+    # Remove test item if it is present
+    not_interacted_items.remove(test_item)
 
     # To avoid overflow when the number of not interacted items is less than negative cases
     negative_cases_factor = 4
-    while negative_cases_factor * number_of_interactions > not_interacted_items[0][0].shape[0]:
+    while negative_cases_factor * number_of_interactions > len(not_interacted_items):
         negative_cases_factor -= 1
 
-    user_negative_cases = np.random.choice(not_interacted_items[0][0],
+    user_negative_cases = np.random.choice(not_interacted_items,
                                            negative_cases_factor * number_of_interactions,
                                            replace=False)
 
@@ -96,10 +100,3 @@ def insert_negative_cases_embeddings_in_training_set(training_set, users_negativ
         negative_cases_base_index = negative_cases_base_index + user_negative_cases_embeddings.shape[0]
 
     return training_set
-
-
-if __name__ == "__main__":
-    urm = np.identity(10, dtype=int)
-    urm[0][3] = 1
-    urm[4][7] = 1
-    get_training_set(urm, None)
