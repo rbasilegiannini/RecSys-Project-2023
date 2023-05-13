@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.random import default_rng
 
 
 def get_training_set(urm, user_item_concatenated_embeddings, test_items):
@@ -27,13 +26,6 @@ def get_training_set(urm, user_item_concatenated_embeddings, test_items):
                                                      urm.shape[0], user_item_concatenated_embeddings)
 
     return training_set
-
-
-def get_number_of_negative_cases(users_negative_cases):
-    number_of_negative_cases = 0
-    for user_negative_cases in users_negative_cases:
-        number_of_negative_cases += user_negative_cases.shape[0]
-    return number_of_negative_cases
 
 
 def get_interaction_pairs(urm):
@@ -69,6 +61,13 @@ def get_user_negative_cases(interacting_user, urm, number_of_interactions, test_
                                            replace=False)
 
     return user_negative_cases
+
+
+def get_number_of_negative_cases(users_negative_cases):
+    number_of_negative_cases = 0
+    for user_negative_cases in users_negative_cases:
+        number_of_negative_cases += user_negative_cases.shape[0]
+    return number_of_negative_cases
 
 
 def insert_interaction_embeddings_in_training_set(training_set, interacting_users, interacting_items,
