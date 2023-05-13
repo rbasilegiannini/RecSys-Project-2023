@@ -1,6 +1,6 @@
-import numpy as np
 import dataset_extractor as ds_extractor
 import MLP_training_set_builder as ds_builder
+
 
 import NNCF
 
