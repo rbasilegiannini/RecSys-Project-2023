@@ -1,15 +1,20 @@
+import numpy as np
 import dataset_extractor as ds_extractor
+import MLP_dataset_builder as ds_builder
+
 import NNCF
 
 USERS_SIZE = 943
 ITEMS_SIZE = 1682
 
+
 hyperparams = {
-    "res": 0.01,
-    "k": 10,
+    "res": 0.5,
+    "k": 3,
     "hidden layers": 1,
-    "neurons": 5,
-    "activation": 'sigmoid'
+    "neurons": 1,
+    "activation": 'sigmoid',
+    "max epochs": 1
 }
 
 
@@ -21,21 +26,41 @@ def main():
     print("URM extraction...", end="")
     dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
     urm = dataset_extractor.get_urm()
-    # test_items = dataset_extractor.get_test_items()
+    test_items = dataset_extractor.get_test_items()
     print(" Complete.")
 
+    # Building and learning NNCF
     net = NNCF.NNCF(urm,
                     hyperparams['res'],
                     hyperparams['k'],
                     hyperparams['hidden layers'],
                     hyperparams['neurons'],
-                    hyperparams['activation'])
+                    hyperparams['activation']
+                    )
 
-    # DEBUG
-    items_not_interacted = [50, 123, 43, 65, 89, 23, 22, 19, 10]
-    recommendations = net.get_recommendations(10, items_not_interacted, 5)
+    user_item_concatenated_embeddings = net.run_integration_component()
+    training_set = ds_builder.get_training_set(urm, user_item_concatenated_embeddings, test_items)
+    net.learning_MLP(training_set, hyperparams['max epochs'])
 
-    print(recommendations)
+    # Testing
+    top_k = 150
+    evaluate_recsys(dataset_extractor, net, top_k, test_items)
+
+
+def evaluate_recsys(dataset_extractor, net, top_k, test_items):
+    hit = 0
+    for user in range(USERS_SIZE):
+        items_not_interacted = dataset_extractor.get_non_interacted_items(user)
+        recommendations = net.get_recommendations(user, items_not_interacted, top_k)
+
+        if test_items[user] in recommendations:
+            hit += 1
+
+    hrk = round((hit / USERS_SIZE) * 100, 2)
+
+    print("HR@" + str(top_k) + ": " + str(hrk) + "%")
+
+    return hrk
 
 
 if __name__ == '__main__':
