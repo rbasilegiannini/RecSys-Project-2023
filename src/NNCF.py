@@ -98,7 +98,6 @@ class NNCF:
         input_dim = training_set_samples.shape[1]
 
         self.__MLP = NNFF.NeuralNetworkFF(input_dim,
-                                          5,
                                           hidden_layers,
                                           2,
                                           self.__activation,

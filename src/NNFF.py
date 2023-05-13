@@ -6,7 +6,6 @@ import random
 class NeuralNetworkFF:
     def __init__(self,
                  input_dim,
-                 neurons_per_input_layer=1,
                  neurons_per_hidden_layers=None,
                  neurons_per_output_layer=1,
                  activation_function='relu',
@@ -25,10 +24,9 @@ class NeuralNetworkFF:
             neurons_per_hidden_layers = [1]
 
         self.__input_dim = input_dim
-        self.__neurons_per_input_layer = neurons_per_input_layer
         self.__neurons_per_hidden_layers = neurons_per_hidden_layers
         self.__neurons_per_output_layer = neurons_per_output_layer
-        self.__num_layers = len(neurons_per_hidden_layers) + 2  # sum input and output layers
+        self.__num_layers = len(neurons_per_hidden_layers) + 1  # sum also output layer
         self.__activation_function = activation_function
         self.__output_function = 'identity'
         self.__bias = bias
@@ -44,7 +42,7 @@ class NeuralNetworkFF:
         """
 
         # Init layers
-        self.__neurons_per_layer = [self.__neurons_per_input_layer]
+        self.__neurons_per_layer = []
         for n in self.__neurons_per_hidden_layers:
             self.__neurons_per_layer.append(n)
         self.__neurons_per_layer.append(self.__neurons_per_output_layer)
