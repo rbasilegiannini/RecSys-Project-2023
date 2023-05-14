@@ -63,7 +63,7 @@ def extract_neighborhood(urm, resolution=0.5):
 
     # extract communities from URM
     [bi_graph, offset] = generate_bipartite_network(urm)
-    communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution)
+    communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution, seed=0)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
     item_nodes = set(bi_graph) - user_nodes
@@ -101,30 +101,41 @@ def extract_neighborhood(urm, resolution=0.5):
 
                 # Collect the item's neighborhood (of users)
                 if neighborhood.size == 0:
-                    item_interactions = urm[:, item]
-                    neighborhood = handle_empty_neighborhood(item_interactions)
+                    urm_item_column = urm[:, item]
+                    neighborhood = handle_empty_neighborhood(urm_item_column)
 
                 items_neighborhood[item] = neighborhood
+
+    # Cut neighborhoods
+    for user in range(len(user_nodes)):
+        if users_neighborhood[user].size > 50:
+            users_neighborhood[user] = users_neighborhood[user][:50]
+
+    for item in range(len(item_nodes)):
+        if items_neighborhood[item].size > 50:
+            items_neighborhood[item] = items_neighborhood[item][:50]
 
     return [users_neighborhood, items_neighborhood]
 
 
-def handle_empty_neighborhood(node_interactions):
+def handle_empty_neighborhood(urm_node_column):
     """
     Empty neighborhood handler. Fill the neighborhood with direct node interactors.
     If there aren't direct node interactors the neighborhood will contain only one random neighbor.
-    :param node_interactions:
-        Node's direct interactions.
+    :param urm_node_column:
+        Urm information about the node.
     :return:
         Neighborhood filled.
     """
 
-    if max(node_interactions) == 0:
-        random_user = random.randint(0, node_interactions.size)
-        user_interacted = np.array([random_user])
-    else:
-        user_interacted = np.where(node_interactions == 1)
+    if max(urm_node_column) == 0:
+        random_node = random.randint(0, urm_node_column.size)
 
-    neighborhood = np.array(user_interacted)
+    else:
+        interaction_nodes_tuple = np.where(urm_node_column == 1)
+        interaction_nodes_array = interaction_nodes_tuple[0]
+        random_node = np.random.choice(interaction_nodes_array)
+
+    neighborhood = np.array([random_node])
 
     return neighborhood
