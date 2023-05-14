@@ -25,6 +25,7 @@ def get_training_set(urm, user_item_concatenated_embeddings, test_items):
     training_set = insert_negative_cases_embeddings_in_training_set(training_set, users_negative_cases, number_of_interactions,
                                                      urm.shape[0], user_item_concatenated_embeddings)
 
+    np.random.shuffle(training_set)
     return training_set
 
 
