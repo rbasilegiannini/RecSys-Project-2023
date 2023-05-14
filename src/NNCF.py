@@ -135,7 +135,8 @@ class NNCF:
             input_data = learn.normalize_samples(user_item_concatenated_embedding, -0.5, 0.5)
             output_lines = self.__MLP.compute_network(input_data)[1][-1]
             # REMOVE SOFTMAX
-            probability_items_list.append((ef.softmax(output_lines)).max())
+            prob = ef.softmax(output_lines)[1][0]
+            probability_items_list.append(prob)
 
         # Sort in decreasing order
         best_items = np.argsort(probability_items_list)[::-1]
