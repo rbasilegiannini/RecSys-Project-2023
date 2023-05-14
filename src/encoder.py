@@ -4,6 +4,9 @@ import numpy as np
 def get_onehot_encoding(size):
     onehot_matrix = np.identity(size, dtype=int)
     return onehot_matrix
+
+def get_scalar_from_one_hot(one_hot):
+    return np.argwhere(one_hot == 1)[0][0]
     
     
 def get_binary_encoding(dim, index_elements):
