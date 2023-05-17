@@ -8,17 +8,20 @@ class NeuralNetworkFF:
                  input_dim,
                  neurons_per_hidden_layers=None,
                  neurons_per_output_layer=1,
-                 activation_function='relu',
+                 activation_function='sigmoid',
                  bias=None):
         """
         :param input_dim:
             The input dimension.
-        :param neurons_per_input_layer:
-            The number of the neurons in the input layer.
         :param neurons_per_hidden_layers:
-            For each hidden layer, the number of the hidden neurons.
+            For each hidden layer, the number of the hidden neurons (list of integers).
         :param neurons_per_output_layer:
             The number of the neurons in the output layer.
+        :param activation_function:
+            The activation function type. This parameter is expressed as a string (refer to activation functions module)
+        :param bias:
+            The bias flag.
+
         """
         if neurons_per_hidden_layers is None:
             neurons_per_hidden_layers = [1]
@@ -28,7 +31,7 @@ class NeuralNetworkFF:
         self.__neurons_per_output_layer = neurons_per_output_layer
         self.__num_layers = len(neurons_per_hidden_layers) + 1  # sum also output layer
         self.__activation_function = activation_function
-        self.__output_function = 'identity'
+        self.__output_function = 'sigmoid'
         self.__bias = bias
 
         self.__neurons_per_layer = []

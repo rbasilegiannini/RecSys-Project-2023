@@ -33,9 +33,6 @@ def get_interaction_functions(users_latent_vector, items_latent_vector, latent_f
     return interaction_functions
 
 
-
-
-
 def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
     # First, we get p_u(N) (or q_i(N)), using a projection of "embeddings"
     # through "neighborhoods_encoding"
@@ -43,7 +40,7 @@ def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
     for neighborhood_encoding in neighborhoods_encoding:
         neighborhood_embedding = embedding[np.where(neighborhood_encoding == 1)]
         # Then, we normalize p_u(N) (or q_i(N))
-        normalized_neighborhood_embedding = normalize_neighborhood_embedding(neighborhood_embedding)
+        normalized_neighborhood_embedding = _normalize_neighborhood_embedding(neighborhood_embedding)
         normalized_neighborhoods_embedding.append(normalized_neighborhood_embedding)
 
     # Finally, we convert the neighborhoods embedding in a numpy array
@@ -53,13 +50,34 @@ def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
     return normalized_neighborhoods_embedding_matrix
 
 
-def normalize_neighborhood_embedding(neighborhood_embedding):
+def get_concatenated_embeddings(interaction_functions, users_neighborhood_embedding, items_neighborhood_embedding):
+    number_of_users = interaction_functions.shape[0]
+    number_of_items = interaction_functions.shape[1]
+    embedding_size = interaction_functions.shape[2]
+    neighborhood_embedding_size = users_neighborhood_embedding.shape[1]  # Same as items_neighborhood_embedding
+
+    concatenated_embeddings = np.zeros((
+        number_of_users,
+        number_of_items,
+        embedding_size + neighborhood_embedding_size * 2))
+
+    for user in range(number_of_users):
+        for item in range(number_of_items):
+            concatenated_embeddings[user, item, :] = np.concatenate((
+                interaction_functions[user, item],
+                users_neighborhood_embedding[user],
+                items_neighborhood_embedding[item]))
+
+    return concatenated_embeddings
+
+
+def _normalize_neighborhood_embedding(neighborhood_embedding):
     # Convolute the neighborhood latent vectors and max-pool it
     reshaped_neighborhood_embedding = neighborhood_embedding.reshape(
         neighborhood_embedding.shape[0], neighborhood_embedding.shape[1], 1)
 
     # |N| x k x |kernels|
-    convoluted_neighborhood_embedding = Conv1D(2, 5, activation='relu',
+    convoluted_neighborhood_embedding = Conv1D(16, 5, activation='tanh',
                                                padding='same',
                                                input_shape=reshaped_neighborhood_embedding[1:]
                                                )(reshaped_neighborhood_embedding)
@@ -83,25 +101,4 @@ def normalize_neighborhood_embedding(neighborhood_embedding):
     averaged_neighborhood_embedding = averaged_neighborhood_embedding.flatten()
 
     return averaged_neighborhood_embedding
-
-
-def get_concatenated_embeddings(interaction_functions, users_neighborhood_embedding, items_neighborhood_embedding):
-    number_of_users = interaction_functions.shape[0]
-    number_of_items = interaction_functions.shape[1]
-    embedding_size = interaction_functions.shape[2]
-    neighborhood_embedding_size = users_neighborhood_embedding.shape[1]  # Same as items_neighborhood_embedding
-
-    concatenated_embeddings = np.zeros((
-        number_of_users,
-        number_of_items,
-        embedding_size + neighborhood_embedding_size * 2))
-
-    for user in range(number_of_users):
-        for item in range(number_of_items):
-            concatenated_embeddings[user, item, :] = np.concatenate((
-                interaction_functions[user, item],
-                users_neighborhood_embedding[user],
-                items_neighborhood_embedding[item]))
-
-    return concatenated_embeddings
 
