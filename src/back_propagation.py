@@ -31,9 +31,6 @@ def back_propagation(NN, input_data, targets):
 
     all_delta = []
 
-    # Post-processing step
-    output_lines = ef.softmax(output_lines)
-
     # Compute delta output
     delta_out = []
     for line in range(num_of_output_neurons):
@@ -41,7 +38,7 @@ def back_propagation(NN, input_data, targets):
         y_k = output_lines[line][0]
         t_k = targets[line][0]
 
-        delta_out_k = af.activation_function_der[output_func_type](a_k) * ef.cross_entropy_soft_max_der(y_k, t_k)
+        delta_out_k = af.activation_function_der[output_func_type](a_k) * ef.cross_entropy_derivative(y_k, t_k)
         delta_out.append(delta_out_k)
     all_delta.append(np.array(delta_out))
 

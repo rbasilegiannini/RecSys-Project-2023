@@ -95,7 +95,7 @@ class RPROP:
         return NN
 
 
-def compute_error(NN, samples, labels_one_hot):
+def compute_error(NN, samples, scalar_labels):
     """
     This function computes the cross entropy soft max error on a specific dataset.
 
@@ -103,30 +103,25 @@ def compute_error(NN, samples, labels_one_hot):
         The NN to be evaluated.
     :param samples:
         The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
-    :param labels_one_hot:
-        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
+    :param scalar_labels:
+        The samples' labels. Each row is a scalar label of the related sample (same row in "samples")
     :return:
         The error's value.
     """
 
-    dataset = {
-        'samples': samples[:, :],
-        'label': labels_one_hot[:, :]
-    }
-
     error = 0
     dataset_size = samples.shape[0]
     for i in range(dataset_size):
-        all_output = NN.compute_network(dataset['samples'][i])[1]
-        output_net = all_output[-1]
-        target = np.column_stack([dataset['label'][i]])
-        sample_error = ef.cross_entropy_loss(ef.softmax(output_net), target)
+        all_output = NN.compute_network(samples[i])[1]
+        output_net = all_output[-1][0][0]
+        target = scalar_labels[i]
+        sample_error = ef.cross_entropy_loss_per_sample(output_net, target)
         error += sample_error
 
     return error/dataset_size
 
 
-def learning(NN, max_epoch, train_samples, labels_one_hot):
+def learning(NN, max_epoch, train_samples, scalar_labels):
     """
     This function is used to train a NN with a specific training set.
 
@@ -136,24 +131,24 @@ def learning(NN, max_epoch, train_samples, labels_one_hot):
         The max number of the epochs.
     :param train_samples:
         The training set's samples. This input must be a matrix where each row is a sample and each column is a feature.
-    :param labels_one_hot:
-        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
+    :param scalar_labels:
+        The samples' labels. Each row is a scalar label of the related sample (same row in "samples")
     :return:
         The trained NN.
     """
 
     train_samples = np.array(train_samples)
-    labels_one_hot = np.array(labels_one_hot)
+    scalar_labels = np.array(scalar_labels)
     num_samples = train_samples.shape[0]
     training_set_size = round(num_samples * 0.7)
 
     training_set = {
         'samples': train_samples[:training_set_size, :],
-        'label': labels_one_hot[:training_set_size, :]
+        'label': scalar_labels[:training_set_size]
     }
     validation_set = {
         'samples': train_samples[training_set_size + 1:, :],
-        'label': labels_one_hot[training_set_size+1:, :]
+        'label': scalar_labels[training_set_size + 1:]
     }
 
     # Compute the number of the NN parameters
@@ -226,7 +221,7 @@ def plot_errors(net_config_evaluated_list):
     plt.show()
 
 
-def accuracy(NN, samples, labels_one_hot):
+def binary_accuracy(NN, samples, scalar_labels, threshold):
     """
     This function computes the accuracy of a NN on a specific dataset.
 
@@ -234,9 +229,10 @@ def accuracy(NN, samples, labels_one_hot):
         The NN to be evaluated.
     :param samples:
         The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
-    :param labels_one_hot:
-        The samples' labels. Each row is the label (in one-hot encoding) of the related sample (same row in "samples")
-
+    :param scalar_labels:
+        The samples' labels. Each row is the scalar label of the related sample (same row in "samples").
+    :param threshold:
+        The minimum value to set to 1 the prediction.
     :return:
         The accuracy as a percentage.
     """
@@ -248,12 +244,14 @@ def accuracy(NN, samples, labels_one_hot):
         output_net = all_output[-1]
 
         # Retrieve the most probable class
-        output_net = ef.softmax(output_net)
-        predict_class = np.argmax(output_net)
+        if output_net >= threshold:
+            predict_class = 1
+        else:
+            predict_class = 0
 
         # Compare
-        target = labels_one_hot[i]
-        if target[predict_class] == 1:
+        target = scalar_labels[i]
+        if predict_class == target:
             num_correct += 1
 
     acc = (num_correct / num_samples) * 100
