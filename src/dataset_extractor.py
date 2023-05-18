@@ -67,5 +67,18 @@ class DatasetExtractor:
         return self.__test_items
 
     def get_not_interacted_items(self, user):
-        items = list(np.where(self.__urm[user] == 0)[0])
+        items = np.where(self.__urm[user] == 0)[0]
         return items
+
+    def get_not_interacted_items_for_recommendation(self, user):
+        user_not_interacted_items = self.get_not_interacted_items(user)
+        user_test_item = self.__test_items[user]
+        user_not_interacted_items = user_not_interacted_items[user_not_interacted_items != user_test_item]
+
+        selected_not_interacted_items = np.zeros(100 + 1, dtype=int)
+        selected_not_interacted_items[:100] = np.random.choice(user_not_interacted_items, 100, replace=False)
+        selected_not_interacted_items[100] = user_test_item
+
+        return selected_not_interacted_items
+
+

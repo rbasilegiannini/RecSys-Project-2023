@@ -102,13 +102,13 @@ class NNCF:
 
         self.__MLP = learn.learning(self.__MLP, max_epochs, training_set_samples, training_set_labels)
 
-    def get_recommendations(self, user, items_not_interacted, k):
+    def get_recommendations(self, user, not_interacted_items, k):
         """
         This function returns the first k recommended items.
 
         :param user:
             The user who wants the recommendations.
-        :param items_not_interacted:
+        :param not_interacted_items:
             A list of items that the user has not interacted with.
         :param k:
             The number of recommendations to return.
@@ -121,9 +121,9 @@ class NNCF:
             print("[NNCF] Learning MLP is mandatory!")
             return
 
-        # For each non-interacting item build (u, i) interaction
+        # For each non-interacted item build (u, i) interaction
         user_item_concatenated_embeddings = []
-        for item in items_not_interacted:
+        for item in not_interacted_items:
             user_item_concatenated_embeddings.append(self.__user_item_concatenated_embeddings[user][item])
 
         # Retrieve K most probability items
@@ -142,7 +142,7 @@ class NNCF:
 
         # Retrieve recommendations
         for best_item in best_items:
-            recommendations.append(items_not_interacted[best_item])
+            recommendations.append(not_interacted_items[best_item])
 
         return recommendations
 

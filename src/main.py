@@ -42,15 +42,15 @@ def main():
     net.learning_MLP(training_set, hyperparams['max epochs'])
 
     # Testing
-    top_k = 150
+    top_k = 20
     evaluate_recsys(dataset_extractor, net, top_k, test_items)
 
 
 def evaluate_recsys(dataset_extractor, net, top_k, test_items):
     hit = 0
     for user in range(USERS_SIZE):
-        items_not_interacted = dataset_extractor.get_not_interacted_items(user)
-        recommendations = net.get_recommendations(user, items_not_interacted, top_k)
+        not_interacted_items_for_recommendation = dataset_extractor.get_not_interacted_items_for_recommendation(user)
+        recommendations = net.get_recommendations(user, not_interacted_items_for_recommendation, top_k)
 
         if test_items[user] in recommendations:
             hit += 1
