@@ -1,7 +1,6 @@
 import dataset_extractor as ds_extractor
-import MLP_training_set_builder as ds_builder
-
-
+import MLP_training_set_builder as ts_builder
+# import classification_test
 import NNCF
 
 USERS_SIZE = 943
@@ -10,11 +9,11 @@ ITEMS_SIZE = 1682
 
 hyperparams = {
     "res": 0.5,
-    "k": 3,
+    "k": 10,
     "hidden layers": 1,
-    "neurons": 1,
+    "neurons": 5,
     "activation": 'sigmoid',
-    "max epochs": 1
+    "max epochs": 10
 }
 
 
@@ -39,7 +38,7 @@ def main():
                     )
 
     user_item_concatenated_embeddings = net.run_integration_component()
-    training_set = ds_builder.get_training_set(urm, user_item_concatenated_embeddings, test_items)
+    training_set = ts_builder.get_training_set(urm, user_item_concatenated_embeddings, test_items)
     net.learning_MLP(training_set, hyperparams['max epochs'])
 
     # Testing
@@ -55,9 +54,9 @@ def evaluate_recsys(dataset_extractor, net, top_k, test_items):
 
         if test_items[user] in recommendations:
             hit += 1
+        print("New hit with user " + str(user) + ". Current hits: " + str(hit))
 
     hrk = round((hit / USERS_SIZE) * 100, 2)
-
     print("HR@" + str(top_k) + ": " + str(hrk) + "%")
 
     return hrk

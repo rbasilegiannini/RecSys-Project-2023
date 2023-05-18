@@ -99,7 +99,7 @@ class NNCF:
 
         self.__MLP = NNFF.NeuralNetworkFF(input_dim,
                                           hidden_layers,
-                                          2,
+                                          1,
                                           self.__activation,
                                           bias=0)
 
@@ -130,16 +130,15 @@ class NNCF:
             user_item_concatenated_embeddings.append(self.__user_item_concatenated_embeddings[user][item])
 
         # Retrieve K most probability items
-        probability_items_list = []
+        items_interaction_probabilities = []
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
             input_data = learn.normalize_samples(user_item_concatenated_embedding, -0.5, 0.5)
-            output_lines = self.__MLP.compute_network(input_data)[1][-1]
-            # REMOVE SOFTMAX
-            prob = ef.softmax(output_lines)[1][0]
-            probability_items_list.append(prob)
+            # TEST
+            output = self.__MLP.compute_network(input_data)[-1]
+            items_interaction_probabilities.append(output)
 
         # Sort in decreasing order
-        best_items = np.argsort(probability_items_list)[::-1]
+        best_items = np.argsort(items_interaction_probabilities)[::-1]
         if k < best_items.size:
             best_items = best_items[:k]
         recommendations = []
