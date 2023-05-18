@@ -88,9 +88,6 @@ class NNCF:
 
         print("Training samples: " + str(len(training_set_samples)))
 
-        # Convert labels in one-hot encoding
-        training_labels_one_hot = encoder.get_binary_one_hot_labels(training_set_labels)
-
         # Learning
         hidden_layers = []
         for layer in range(self.__number_hidden_layers):
@@ -103,7 +100,7 @@ class NNCF:
                                           self.__activation,
                                           bias=0)
 
-        self.__MLP = learn.learning(self.__MLP, max_epochs, training_set_samples, training_labels_one_hot)
+        self.__MLP = learn.learning(self.__MLP, max_epochs, training_set_samples, training_set_labels)
 
     def get_recommendations(self, user, items_not_interacted, k):
         """
