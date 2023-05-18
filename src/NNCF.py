@@ -131,7 +131,7 @@ class NNCF:
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
             input_data = learn.normalize_samples(user_item_concatenated_embedding, -0.5, 0.5)
             # TEST
-            output = self.__MLP.compute_network(input_data)[-1]
+            output = self.__MLP.compute_network(input_data)[1][-1][0]
             items_interaction_probabilities.append(output)
 
         # Sort in decreasing order

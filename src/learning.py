@@ -113,7 +113,7 @@ def compute_error(NN, samples, scalar_labels):
     dataset_size = samples.shape[0]
     for i in range(dataset_size):
         all_output = NN.compute_network(samples[i])[1]
-        output_net = all_output[-1][0][0]
+        output_net = all_output[-1][0]
         target = scalar_labels[i]
         sample_error = ef.cross_entropy_loss_per_sample(output_net, target)
         error += sample_error
@@ -166,7 +166,7 @@ def learning(NN, max_epoch, train_samples, scalar_labels):
         # Compute the error gradient
         grad_E_tot = np.zeros(num_params)
         for i in range(training_set_size):
-            grad_E_sample = bp.back_propagation(NN, training_set['samples'][i], training_set['label'][i])
+            grad_E_sample = bp.back_propagation(NN, training_set['samples'][i], np.array([training_set['label'][i]]))
             grad_E_tot += grad_E_sample
 
         # Update NN parameters
@@ -241,7 +241,7 @@ def binary_accuracy(NN, samples, scalar_labels, threshold):
     num_samples = samples.shape[0]
     for i in range(num_samples):
         all_output = NN.compute_network(samples[i])[1]
-        output_net = all_output[-1]
+        output_net = all_output[-1][0]
 
         # Retrieve the most probable class
         if output_net >= threshold:
