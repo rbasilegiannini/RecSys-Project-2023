@@ -82,10 +82,6 @@ class NNCF:
         training_set_samples = training_set[:, :-1]
         training_set_labels = training_set[:, -1]
 
-        print("Samples normalization...", end="")
-        training_set_samples = learn.normalize_samples(training_set_samples, -0.5, 0.5)
-        print(" Complete.")
-
         print("Training samples: " + str(len(training_set_samples)))
 
         # Learning
@@ -129,9 +125,7 @@ class NNCF:
         # Retrieve K most probability items
         items_interaction_probabilities = []
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
-            input_data = learn.normalize_samples(user_item_concatenated_embedding, -0.5, 0.5)
-            # TEST
-            output = self.__MLP.compute_network(input_data)[1][-1][0]
+            output = self.__MLP.compute_network(user_item_concatenated_embedding)[1][-1][0]
             items_interaction_probabilities.append(output)
 
         # Sort in decreasing order

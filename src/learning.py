@@ -259,25 +259,4 @@ def binary_accuracy(NN, samples, scalar_labels, threshold):
     return acc
 
 
-def normalize_samples(samples, l_ext, r_ext):
-    """
-    This function is used to normalize each feature of the samples in [l_ext, r_ext]
 
-    :param samples:
-        The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
-    :param l_ext:
-        left end of the interval.
-    :param r_ext:
-        Right end of the interval.
-    :return:
-        The normalized samples.
-    """
-
-    num_samples = samples.shape[0]
-    max_value = samples.max()
-    min_value = samples.min()
-
-    for i in range(num_samples):
-        samples[i] = l_ext + (((samples[i] - min_value) * (r_ext - l_ext)) / (max_value - min_value))
-
-    return samples

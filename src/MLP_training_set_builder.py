@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_training_set(urm, user_item_concatenated_embeddings, test_items):
+def get_training_set(urm, user_item_concatenated_embeddings, test_items, l_ext=-0.5, r_ext=0.5):
     # Get interaction pairs to put into the training set
     interacting_users, interacting_items = _get_interaction_pairs(urm)
     # urm[int_users[i], int_items[i]] is an interaction pair
@@ -25,7 +25,10 @@ def get_training_set(urm, user_item_concatenated_embeddings, test_items):
     training_set = _insert_negative_cases_embeddings_in_training_set(training_set, users_negative_cases, number_of_interactions,
                                                                      urm.shape[0], user_item_concatenated_embeddings)
 
+    training_set = _normalize_training_set(training_set, r_ext, l_ext)
+
     np.random.shuffle(training_set)
+
     return training_set
 
 
@@ -99,3 +102,35 @@ def _insert_negative_cases_embeddings_in_training_set(training_set, users_negati
         negative_cases_base_index = negative_cases_base_index + user_negative_cases_embeddings.shape[0]
 
     return training_set
+
+
+def _normalize_training_set(training_set, r_ext, l_ext):
+    samples_size = training_set.shape[1] - 1
+    normalized_samples = _normalize_samples(training_set[:, :samples_size], l_ext, r_ext)
+    training_set[:, :samples_size] = normalized_samples
+
+    return training_set
+
+
+def _normalize_samples(samples, l_ext, r_ext):
+    """
+    This function is used to normalize each feature of the samples in [l_ext, r_ext]
+
+    :param samples:
+        The dataset's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param l_ext:
+        left end of the interval.
+    :param r_ext:
+        Right end of the interval.
+    :return:
+        The normalized samples.
+    """
+
+    num_samples = samples.shape[0]
+    max_value = samples.max()
+    min_value = samples.min()
+
+    for i in range(num_samples):
+        samples[i] = l_ext + (((samples[i] - min_value) * (r_ext - l_ext)) / (max_value - min_value))
+
+    return samples
