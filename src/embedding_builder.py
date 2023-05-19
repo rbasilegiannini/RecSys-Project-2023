@@ -1,6 +1,6 @@
 import numpy as np
 from keras.layers import Conv1D, MaxPooling1D
-
+from keras.initializers.initializers import GlorotUniform
 import utility
 
 
@@ -79,6 +79,7 @@ def _normalize_neighborhood_embedding(neighborhood_embedding):
     # |N| x k x |kernels|
     convoluted_neighborhood_embedding = Conv1D(16, 5, activation='tanh',
                                                padding='same',
+                                               kernel_initializer=GlorotUniform(seed=0),
                                                input_shape=reshaped_neighborhood_embedding[1:]
                                                )(reshaped_neighborhood_embedding)
     # |N| x k/2 x |kernels|
