@@ -1,6 +1,7 @@
 import random
 import networkx as nx
 import numpy as np
+from community import community_louvain
 
 
 def extract_neighborhood(urm, resolution=0.5):
@@ -15,20 +16,14 @@ def extract_neighborhood(urm, resolution=0.5):
     """
 
     # Check resolution
-    if resolution > 1 or resolution < 0:
-        resolution = 0.5
-
-    # Mapping resolution in [1, 10] because of louvain_communities input
-    input_min = 0
-    input_max = 1
-    res_min = 1
-    res_max = 10
-    slope = (res_max - res_min) / (input_max - input_min)
-    resolution = res_min + slope * (resolution - input_min)
+    if resolution > 1:
+        resolution = 1
+    if resolution < 0:
+        resolution = 0
 
     # extract communities from URM
     [bi_graph, offset] = _generate_bipartite_network(urm)
-    communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution, seed=0)
+    communities = community_louvain.best_partition(bi_graph, resolution=resolution)
 
     user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
     item_nodes = set(bi_graph) - user_nodes
@@ -36,49 +31,47 @@ def extract_neighborhood(urm, resolution=0.5):
     users_neighborhood = np.empty(shape=len(user_nodes), dtype=np.ndarray)
     items_neighborhood = np.empty(shape=len(item_nodes), dtype=np.ndarray)
 
-    # for each community, retrieve the user's (item's) neighborhood
-    for community in communities:
+    # From key = 0 to key = 942 are users. The values represent the community's id
+    communities_with_users = {node: communities[node] for node in range(943)}  # TODO: Remove hard coding
+    communities_with_items = {node: communities[node] for node in range(offset, offset+1682)}
 
-        for node in community:
-            neighborhood = np.array(list(community))
+    for node, community_id in communities.items():
 
-            if node in user_nodes:  # node is a user
-                user = node
-                # Remove other users from the community
-                for n in neighborhood:
-                    if n in user_nodes:
-                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
-                neighborhood = neighborhood - offset
+        if node in user_nodes:  # node is a user
+            user = node
+            user_neighborhood_list = []
+            for neighbor, neighborhood_id in communities_with_items.items():
+                if neighborhood_id == community_id and neighbor not in user_nodes:  #TODO: remove "not in" condition
+                    user_neighborhood_list.append(neighbor)
+            user_neighborhood = np.array(user_neighborhood_list)
+            user_neighborhood = user_neighborhood - offset
 
-                # Collect the user's neighborhood (of items)
-                if neighborhood.size == 0:
-                    user_interactions = urm[user, :]
-                    neighborhood = _handle_empty_neighborhood(user_interactions)
+            # Check neighborhood size
+            if user_neighborhood.size > 50:
+                user_neighborhood = user_neighborhood[:50]
 
-                users_neighborhood[user] = neighborhood
+            elif user_neighborhood.size == 0:
+                urm_user_row = urm[user, :]
+                user_neighborhood = _handle_empty_neighborhood(urm_user_row)
 
-            else:  # node is an item
-                item = node - offset
-                # Remove other items from the community
-                for n in neighborhood:
-                    if n in item_nodes:
-                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
+            users_neighborhood[user] = user_neighborhood
 
-                # Collect the item's neighborhood (of users)
-                if neighborhood.size == 0:
-                    urm_item_column = urm[:, item]
-                    neighborhood = _handle_empty_neighborhood(urm_item_column)
+        else:  # node is an item
+            item = node - offset
+            item_neighborhood_list = []
+            for neighbor, neighborhood_id in communities_with_users.items():
+                if neighborhood_id == community_id and neighbor not in item_nodes:
+                    item_neighborhood_list.append(neighbor)
+            item_neighborhood = np.array(item_neighborhood_list)
 
-                items_neighborhood[item] = neighborhood
+            # Check neighborhood size
+            if item_neighborhood.size > 50:
+                item_neighborhood = item_neighborhood[:50]
+            elif item_neighborhood.size == 0:
+                urm_item_column = urm[:, item]
+                item_neighborhood = _handle_empty_neighborhood(urm_item_column)
 
-    # Cut neighborhoods
-    for user in range(len(user_nodes)):
-        if users_neighborhood[user].size > 50:
-            users_neighborhood[user] = users_neighborhood[user][:50]
-
-    for item in range(len(item_nodes)):
-        if items_neighborhood[item].size > 50:
-            items_neighborhood[item] = items_neighborhood[item][:50]
+            items_neighborhood[item] = item_neighborhood
 
     return [users_neighborhood, items_neighborhood]
 
@@ -120,8 +113,8 @@ def _generate_bipartite_network(urm):
 
 def _handle_empty_neighborhood(urm_node_column):
     """
-    Empty neighborhood handler. Fill the neighborhood with direct node interactors.
-    If there aren't direct node interactors the neighborhood will contain only one random neighbor.
+    Empty neighborhood handler. Fill the neighborhood with one direct interactor node.
+    If there aren't direct interactor nodes the neighborhood will contain only one random neighbor.
     :param urm_node_column:
         Urm information about the node.
     :return:
