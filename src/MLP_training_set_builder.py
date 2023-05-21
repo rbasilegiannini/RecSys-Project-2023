@@ -1,14 +1,14 @@
 import numpy as np
 
 
-def get_training_set(urm, user_item_concatenated_embeddings, test_items, l_ext=-0.5, r_ext=0.5):
+def get_training_set(urm, user_item_concatenated_embeddings, items_to_avoid, l_ext=-0.5, r_ext=0.5):
     # Get interaction pairs to put into the training set
     interacting_users, interacting_items = _get_interaction_pairs(urm)
     # urm[int_users[i], int_items[i]] is an interaction pair
 
     # Get 4 negative cases for each interaction pair,
     # that are 4 user-item pairs where interaction didn't occur
-    users_negative_cases = _get_negative_cases(urm, test_items)
+    users_negative_cases = _get_negative_cases(urm, items_to_avoid)
 
     number_of_negative_cases = _get_number_of_negative_cases(users_negative_cases)
 
@@ -48,12 +48,14 @@ def _get_negative_cases(urm, test_items):
     return users_negative_cases
 
 
-def _get_user_negative_cases(interacting_user, urm, number_of_interactions, test_item):
+def _get_user_negative_cases(interacting_user, urm, number_of_interactions, items_to_avoid_per_user):
     not_interacted_items_tuples = np.where(urm[interacting_user] == 0)
     not_interacted_items = list(not_interacted_items_tuples[0])
 
-    # Remove test item if it is present
-    not_interacted_items.remove(test_item)
+    # Remove items to avoid if it is present
+    for item_to_avoid in items_to_avoid_per_user:
+        if item_to_avoid in not_interacted_items:
+            not_interacted_items.remove(item_to_avoid)
 
     # To avoid overflow when the number of not interacted items is less than negative cases
     negative_cases_factor = 4
