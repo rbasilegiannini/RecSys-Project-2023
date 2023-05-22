@@ -39,7 +39,8 @@ class DatasetExtractor:
             if entry_fields[0] != '' and entry_fields[1] != '':
                 user_id = int(entry_fields[0])
                 item_id = int(entry_fields[1])
-                urm[user_id - 1][item_id - 1] = 1
+                if user_id <= self.__users_size and item_id <= self.__items_size:
+                    urm[user_id - 1][item_id - 1] = 1
         self.__urm = urm
 
     def __choose_test_items_from_dataset(self, dataset_entries):
@@ -52,7 +53,8 @@ class DatasetExtractor:
                 item_id = int(entry_fields[1])
                 timestamp = int(entry_fields[3])
 
-                interaction_timestamps[user_id - 1][item_id - 1] = timestamp
+                if user_id <= self.__users_size and item_id <= self.__items_size:
+                    interaction_timestamps[user_id - 1][item_id - 1] = timestamp
 
         self.__test_items = np.argmax(interaction_timestamps, axis=1)
 

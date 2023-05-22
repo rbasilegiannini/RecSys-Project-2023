@@ -5,8 +5,8 @@ import MLP_training_set_builder as ds_builder
 import tensorflow as tf
 import NNCF
 
-USERS_SIZE = 943
-ITEMS_SIZE = 1682
+USERS_SIZE = 700
+ITEMS_SIZE = 1200
 
 
 hyperparams = {
