@@ -33,13 +33,13 @@ class RPROP:
     """
 
     def __init__(self, num_params):
-        self._old_grad_E = np.zeros(num_params)
-        self._update_max = 50
-        self._update_min = 1e-6
-        self._eta_minus = 0.3
-        self._eta_plus = 1.1
-        self._update_value = np.full(num_params, 0.01)
-        self._delta = np.zeros(num_params)
+        self.__old_grad_E = np.zeros(num_params)
+        self.__update_max = 50
+        self.__update_min = 1e-6
+        self.__eta_minus = 0.3
+        self.__eta_plus = 1.1
+        self.__update_value = np.full(num_params, 0.01)
+        self.__delta = np.zeros(num_params)
 
     def update(self, NN, grad_E):
         """
@@ -64,28 +64,28 @@ class RPROP:
 
             for i in range(params.size):
 
-                old_grad_E_i = self._old_grad_E[offset + i]
+                old_grad_E_i = self.__old_grad_E[offset + i]
                 current_grad_E_i = grad_E[offset + i]
 
                 if (old_grad_E_i * current_grad_E_i) > 0:
-                    self._update_value[offset + i] = min(self._update_value[offset + i] * self._eta_plus,
-                                                         self._update_max)
-                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
-                    params[i] += self._delta[offset + i]
+                    self.__update_value[offset + i] = min(self.__update_value[offset + i] * self.__eta_plus,
+                                                          self.__update_max)
+                    self.__delta[offset + i] = -np.sign(current_grad_E_i) * self.__update_value[offset + i]
+                    params[i] += self.__delta[offset + i]
                     old_grad_E_i = current_grad_E_i
 
                 elif (old_grad_E_i * current_grad_E_i) < 0:
-                    params[i] -= self._delta[offset + i]  # Backtracking
-                    self._update_value[offset + i] = max(self._update_value[offset + i] * self._eta_minus,
-                                                         self._update_min)
+                    params[i] -= self.__delta[offset + i]  # Backtracking
+                    self.__update_value[offset + i] = max(self.__update_value[offset + i] * self.__eta_minus,
+                                                          self.__update_min)
                     old_grad_E_i = 0
 
                 else:
-                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
-                    params[i] += self._delta[offset + i]
+                    self.__delta[offset + i] = -np.sign(current_grad_E_i) * self.__update_value[offset + i]
+                    params[i] += self.__delta[offset + i]
                     old_grad_E_i = current_grad_E_i
 
-                self._old_grad_E[offset + i] = old_grad_E_i
+                self.__old_grad_E[offset + i] = old_grad_E_i
 
             # Set new parameters
             mat_params = np.reshape(params, [rows, cols])
@@ -169,8 +169,8 @@ def learning(NN, max_epoch, train_samples, scalar_labels):  # TODO: refactoring
         grad_E_tot = np.zeros(num_params)
         for i in range(training_set_size):
 
-            grad_E_sample = back_prop.computer_error_gradient(training_set['samples'][i],
-                                                              np.array([training_set['label'][i]]))
+            grad_E_sample = back_prop.compute_error_gradient(training_set['samples'][i],
+                                                             np.array([training_set['label'][i]]))
             grad_E_tot += grad_E_sample
 
         # Update NN parameters
