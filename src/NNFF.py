@@ -6,31 +6,32 @@ import random
 class NeuralNetworkFF:
     def __init__(self,
                  input_dim,
-                 neurons_per_input_layer=1,
                  neurons_per_hidden_layers=None,
                  neurons_per_output_layer=1,
-                 activation_function='relu',
+                 activation_function='sigmoid',
                  bias=None):
         """
         :param input_dim:
             The input dimension.
-        :param neurons_per_input_layer:
-            The number of the neurons in the input layer.
         :param neurons_per_hidden_layers:
-            For each hidden layer, the number of the hidden neurons.
+            For each hidden layer, the number of the hidden neurons (list of integers).
         :param neurons_per_output_layer:
             The number of the neurons in the output layer.
+        :param activation_function:
+            The activation function type. This parameter is expressed as a string (refer to activation functions module)
+        :param bias:
+            The bias flag.
+
         """
         if neurons_per_hidden_layers is None:
             neurons_per_hidden_layers = [1]
 
         self.__input_dim = input_dim
-        self.__neurons_per_input_layer = neurons_per_input_layer
         self.__neurons_per_hidden_layers = neurons_per_hidden_layers
         self.__neurons_per_output_layer = neurons_per_output_layer
-        self.__num_layers = len(neurons_per_hidden_layers) + 2  # sum input and output layers
+        self.__num_layers = len(neurons_per_hidden_layers) + 1  # sum also output layer
         self.__activation_function = activation_function
-        self.__output_function = 'identity'
+        self.__output_function = 'sigmoid'
         self.__bias = bias
 
         self.__neurons_per_layer = []
@@ -44,7 +45,7 @@ class NeuralNetworkFF:
         """
 
         # Init layers
-        self.__neurons_per_layer = [self.__neurons_per_input_layer]
+        self.__neurons_per_layer = []
         for n in self.__neurons_per_hidden_layers:
             self.__neurons_per_layer.append(n)
         self.__neurons_per_layer.append(self.__neurons_per_output_layer)
@@ -94,11 +95,11 @@ class NeuralNetworkFF:
             # Init loop
             current_params = self.__params_per_layer[layer]
             num_of_neurons = self.__neurons_per_layer[layer]
-            output_of_layer = np.ndarray([num_of_neurons, 1])
+            output_of_layer = np.zeros(num_of_neurons)
 
             # Compute activation and output
             activation_of_layer = current_params @ input_lines
-            activation.append(np.array(activation_of_layer))
+            activation.append(activation_of_layer.flatten())
 
             for n in range(num_of_neurons):
                 output_of_layer[n] = af.activation_function[afunc_type](activation_of_layer[n])
@@ -112,10 +113,10 @@ class NeuralNetworkFF:
         # Compute the output layer
         current_params = self.__params_per_layer[-1]
         num_of_neurons = self.__neurons_per_output_layer
-        output_of_layer = np.ndarray([num_of_neurons, 1])
+        output_of_layer = np.zeros(num_of_neurons)
 
         activation_of_layer = current_params @ input_lines
-        activation.append(np.array(activation_of_layer))
+        activation.append(activation_of_layer.flatten())
 
         out_func_type = self.__output_function
         for n in range(num_of_neurons):

@@ -4,6 +4,10 @@ import numpy as np
 def get_onehot_encoding(size):
     onehot_matrix = np.identity(size, dtype=int)
     return onehot_matrix
+
+
+def get_scalar_from_one_hot(one_hot):
+    return np.argwhere(one_hot == 1)[0][0]
     
     
 def get_binary_encoding(dim, index_elements):
@@ -53,9 +57,9 @@ def get_binary_one_hot_labels(labels_col):
 
     for idx_sample in range(num_of_samples):
         if labels_col[idx_sample] == 1:
-            targets_one_hot[idx_sample][0] = 1
-        else:
             targets_one_hot[idx_sample][1] = 1
+        else:
+            targets_one_hot[idx_sample][0] = 1
 
     return targets_one_hot
 

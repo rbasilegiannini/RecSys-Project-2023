@@ -1,14 +1,89 @@
+import random
 import networkx as nx
 import numpy as np
+from community import community_louvain
 
 
-def generate_bipartite_network(urm):
+def extract_neighborhood(urm, resolution=0.5):
+    """
+    :param urm:
+        The User-Rating Matrix
+    :param resolution:
+        This value is between [0, 1].
+        If resolution is less than 1, the algorithm favors larger communities.
+    :return:
+        A list with users neighborhood (index 0) and items neighborhood (index 1)
+    """
+
+    # Check resolution
+    if resolution > 1:
+        resolution = 1
+    if resolution < 0:
+        resolution = 0
+
+    # extract communities from URM
+    [bi_graph, offset] = _generate_bipartite_network(urm)
+    communities = community_louvain.best_partition(bi_graph, resolution=resolution)
+
+    user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
+    item_nodes = set(bi_graph) - user_nodes
+
+    users_neighborhood = np.empty(shape=len(user_nodes), dtype=np.ndarray)
+    items_neighborhood = np.empty(shape=len(item_nodes), dtype=np.ndarray)
+
+    # From key = 0 to key = 942 are users. The values represent the community's id
+    communities_with_users = {node: communities[node] for node in range(943)}  # TODO: Remove hard coding
+    communities_with_items = {node: communities[node] for node in range(offset, offset+1682)}
+
+    for node, community_id in communities.items():
+
+        if node in user_nodes:  # node is a user
+            user = node
+            user_neighborhood_list = []
+            for neighbor, neighborhood_id in communities_with_items.items():
+                if neighborhood_id == community_id and neighbor not in user_nodes:  #TODO: remove "not in" condition
+                    user_neighborhood_list.append(neighbor)
+            user_neighborhood = np.array(user_neighborhood_list)
+            user_neighborhood = user_neighborhood - offset
+
+            # Check neighborhood size
+            if user_neighborhood.size > 50:
+                user_neighborhood = user_neighborhood[:50]
+
+            elif user_neighborhood.size == 0:
+                urm_user_row = urm[user, :]
+                user_neighborhood = _handle_empty_neighborhood(urm_user_row)
+
+            users_neighborhood[user] = user_neighborhood
+
+        else:  # node is an item
+            item = node - offset
+            item_neighborhood_list = []
+            for neighbor, neighborhood_id in communities_with_users.items():
+                if neighborhood_id == community_id and neighbor not in item_nodes:
+                    item_neighborhood_list.append(neighbor)
+            item_neighborhood = np.array(item_neighborhood_list)
+
+            # Check neighborhood size
+            if item_neighborhood.size > 50:
+                item_neighborhood = item_neighborhood[:50]
+            elif item_neighborhood.size == 0:
+                urm_item_column = urm[:, item]
+                item_neighborhood = _handle_empty_neighborhood(urm_item_column)
+
+            items_neighborhood[item] = item_neighborhood
+
+    return [users_neighborhood, items_neighborhood]
+
+
+def _generate_bipartite_network(urm):
     """
     :param urm:
         The User-Rating Matrix
     :return:
         A bipartite graph and the offset between user's and item's ID
     """
+
     bi_graph = nx.Graph()
 
     # initialize interaction dct with user nodes
@@ -36,49 +111,24 @@ def generate_bipartite_network(urm):
         return [bi_graph, offset]
 
 
-def extract_neighborhood(urm, resolution):
+def _handle_empty_neighborhood(urm_node_column):
     """
-    :param urm:
-        The User-Rating Matrix
-    :param resolution:
-        If resolution is less than 1, the algorithm favors larger communities.
-        Greater than 1 favors smaller communities
+    Empty neighborhood handler. Fill the neighborhood with one direct interactor node.
+    If there aren't direct interactor nodes the neighborhood will contain only one random neighbor.
+    :param urm_node_column:
+        Urm information about the node.
     :return:
-        A list with users neighborhood (index 0) and items neighborhood (index 1)
+        Neighborhood filled.
     """
 
-    users_neighborhood = []
-    items_neighborhood = []
+    if max(urm_node_column) == 0:
+        random_node = random.randint(0, urm_node_column.size)
 
-    # extract communities from URM
-    [bi_graph, offset] = generate_bipartite_network(urm)
-    communities = nx.algorithms.community.louvain_communities(bi_graph, resolution=resolution)
+    else:
+        interaction_nodes_tuple = np.where(urm_node_column == 1)
+        interaction_nodes_array = interaction_nodes_tuple[0]
+        random_node = np.random.choice(interaction_nodes_array)
 
-    user_nodes = {n for n, d in bi_graph.nodes(data=True) if d["bipartite"] == 0}
-    item_nodes = set(bi_graph) - user_nodes
+    neighborhood = np.array([random_node])
 
-    # for each community, retrieve the user's (item's) neighborhood
-    for community in communities:
-
-        for node in community:
-            neighborhood = np.array(list(community))
-
-            if node in user_nodes:  # node is a user
-                # Remove other users from the community
-                for n in neighborhood:
-                    if n in user_nodes:
-                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
-
-                # Collect the user's neighborhood (of items)
-                users_neighborhood.append(neighborhood - offset)
-
-            else:  # node is an item
-                # Remove other items from the community
-                for n in neighborhood:
-                    if n in item_nodes:
-                        neighborhood = np.delete(neighborhood, np.where(neighborhood == n))
-
-                # Collect the item's neighborhood (of users)
-                items_neighborhood.append(neighborhood)
-
-    return [users_neighborhood, items_neighborhood]
+    return neighborhood

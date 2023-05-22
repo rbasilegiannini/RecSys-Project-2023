@@ -1,14 +1,10 @@
 import neighborhood_builder as nb_builder
 import embedding_builder as emb_builder
-import MLP_dataset_builder as mlp_builder
 import NNFF
 import learning as learn
 import encoder
 import numpy as np
 import error_functions as ef
-
-USERS_SIZE = 943
-ITEMS_SIZE = 1682
 
 
 class NNCF:
@@ -26,16 +22,23 @@ class NNCF:
         self.__neurons = neurons
         self.__activation = activation
 
-        self.__learning_NNCF()
+    def run_integration_component(self):
+        """
+        This method run the integration component phase.
 
-    def __run_integration_component(self):
+        :return:
+            The user-item concatenated embeddings.
+        """
 
         print("Run Integration Component's phase...", end="")
 
         # Retrieve neighborhoods and binary encoding
+        num_of_users = self.__urm.shape[0]
+        num_of_items = self.__urm.shape[1]
+
         [users_neighborhood, items_neighborhood] = nb_builder.extract_neighborhood(self.__urm, self.__res)
-        binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, ITEMS_SIZE)
-        binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, USERS_SIZE)
+        binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, num_of_items)
+        binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, num_of_users)
 
         # Compute latent vectors
         [users_latent_vector, items_latent_vector] = emb_builder.get_latent_vectors(self.__urm, self.__latent_factor)
@@ -56,21 +59,30 @@ class NNCF:
 
         print(" Complete.")
 
-    def __learning_MLP(self, training_set, max_epoch):
+        return self.__user_item_concatenated_embeddings
+
+    def learning_MLP(self, training_set, max_epochs=10):
+        """
+        This method performs the learning of the Multi-Layer Perceptron.
+        It's mandatory to run the integration component phase first.
+
+        :param training_set:
+            The training set.
+        :param max_epochs:
+            The max number of epochs (default = 10)
+
+        """
+
+        # Check integration component phase
+        if self.__user_item_concatenated_embeddings is None:
+            print("[NNCF] Run integration component phase is mandatory!")
+            return
 
         np.random.shuffle(training_set)
-        # training_set = training_set[:1000, :]
         training_set_samples = training_set[:, :-1]
         training_set_labels = training_set[:, -1]
 
-        print("Samples normalization...", end="")
-        training_set_samples = learn.normalize_samples(training_set_samples, -0.5, 0.5)
-        print(" Complete.")
-
         print("Training samples: " + str(len(training_set_samples)))
-
-        # Convert labels in one-hot encoding
-        training_labels_one_hot = encoder.get_binary_one_hot_labels(training_set_labels)
 
         # Learning
         hidden_layers = []
@@ -79,26 +91,20 @@ class NNCF:
         input_dim = training_set_samples.shape[1]
 
         self.__MLP = NNFF.NeuralNetworkFF(input_dim,
-                                          5,
                                           hidden_layers,
-                                          2,
+                                          1,
                                           self.__activation,
                                           bias=0)
 
-        self.__MLP = learn.learning(self.__MLP, max_epoch, training_set_samples, training_labels_one_hot)
+        self.__MLP = learn.learning(self.__MLP, max_epochs, training_set_samples, training_set_labels)
 
-    def __learning_NNCF(self):
-        self.__run_integration_component()
-        training_set = mlp_builder.get_training_set(self.__urm, self.__user_item_concatenated_embeddings)
-        self.__learning_MLP(training_set, 1)
-
-    def get_recommendations(self, user, items_not_interacted, k):
+    def get_recommendations(self, user, not_interacted_items, k):
         """
         This function returns the first k recommended items.
 
         :param user:
             The user who wants the recommendations.
-        :param items_not_interacted:
+        :param not_interacted_items:
             A list of items that the user has not interacted with.
         :param k:
             The number of recommendations to return.
@@ -106,25 +112,31 @@ class NNCF:
             A list with the first k recommended items sorted by best.
         """
 
-        # For each non-interacting item build (u, i) interaction
+        # Check MLP
+        if self.__MLP is None:
+            print("[NNCF] Learning MLP is mandatory!")
+            return
+
+        # For each non-interacted item build (u, i) interaction
         user_item_concatenated_embeddings = []
-        for item in items_not_interacted:
+        for item in not_interacted_items:
             user_item_concatenated_embeddings.append(self.__user_item_concatenated_embeddings[user][item])
 
         # Retrieve K most probability items
-        probability_items_list = []
+        items_interaction_probabilities = []
         for user_item_concatenated_embedding in user_item_concatenated_embeddings:
-            output_lines = self.__MLP.compute_network(user_item_concatenated_embedding)[1][-1]
-            probability_items_list.append((ef.softmax(output_lines)).max())
+            output = self.__MLP.compute_network(user_item_concatenated_embedding)[1][-1][0]
+            items_interaction_probabilities.append(output)
 
         # Sort in decreasing order
-        best_items = np.argsort(probability_items_list)[::-1]
-        best_items = best_items[:k]
+        best_items = np.argsort(items_interaction_probabilities)[::-1]
+        if k < best_items.size:
+            best_items = best_items[:k]
         recommendations = []
 
         # Retrieve recommendations
         for best_item in best_items:
-            recommendations.append(items_not_interacted[best_item])
+            recommendations.append(not_interacted_items[best_item])
 
         return recommendations
 
