@@ -31,6 +31,7 @@ class RPROP:
     """
     This class implements the RPROP rule used to update the parameters of a NN based on the error gradient.
     """
+
     def __init__(self, num_params):
         self._old_grad_E = np.zeros(num_params)
         self._update_max = 50
@@ -118,10 +119,10 @@ def compute_error(NN, samples, scalar_labels):
         sample_error = ef.cross_entropy_loss_per_sample(output_net, target)
         error += sample_error
 
-    return error/dataset_size
+    return error / dataset_size
 
 
-def learning(NN, max_epoch, train_samples, scalar_labels):
+def learning(NN, max_epoch, train_samples, scalar_labels):  # TODO: refactoring
     """
     This function is used to train a NN with a specific training set.
 
@@ -158,15 +159,18 @@ def learning(NN, max_epoch, train_samples, scalar_labels):
 
     # Learning
     rprop = RPROP(num_params)
+    back_prop = bp.BackPropagation(NN)
     evaluated_net_config_list = []
     for epoch in range(max_epoch):
-        print("Run epoch: " + str(epoch+1) + "...", end="")
+        print("Run epoch: " + str(epoch + 1) + "...", end="")
         start = time.time()
 
         # Compute the error gradient
         grad_E_tot = np.zeros(num_params)
         for i in range(training_set_size):
-            grad_E_sample = bp.back_propagation(NN, training_set['samples'][i], np.array([training_set['label'][i]]))
+
+            grad_E_sample = back_prop.computer_error_gradient(training_set['samples'][i],
+                                                              np.array([training_set['label'][i]]))
             grad_E_tot += grad_E_sample
 
         # Update NN parameters
@@ -181,7 +185,7 @@ def learning(NN, max_epoch, train_samples, scalar_labels):
         evaluated_net_config_list.append(evaluated_net_config)
 
         end = time.time()
-        timing = str(round(end-start, 2))
+        timing = str(round(end - start, 2))
         print(" Complete. (" + timing + "s) ")
 
     # Retrieve best epoch (smallest validation error)
@@ -257,6 +261,3 @@ def binary_accuracy(NN, samples, scalar_labels, threshold):
     acc = (num_correct / num_samples) * 100
 
     return acc
-
-
-
