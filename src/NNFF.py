@@ -69,7 +69,7 @@ class NeuralNetworkFF:
 
             self.__params_per_layer.append(weights)
 
-    def compute_network(self, input_data):
+    def compute_network(self, input_data):  # TODO: refactoring
         """
         This function computes the output of the NN based on the current parameters
 

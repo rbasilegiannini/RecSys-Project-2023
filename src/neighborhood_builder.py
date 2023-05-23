@@ -4,7 +4,7 @@ import numpy as np
 from community import community_louvain
 
 
-def extract_neighborhood(urm, resolution=0.5):
+def extract_neighborhood(urm, resolution=0.5): # TODO: refactoring
     """
     :param urm:
         The User-Rating Matrix

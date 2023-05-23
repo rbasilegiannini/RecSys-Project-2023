@@ -111,6 +111,7 @@ class BackPropagation:
 
             delta_i = np.zeros(num_neurons_layer)
             for neuron in range(num_neurons_layer):
+                # delta_i = compute_neuron_delta(neuron, )
 
                 a_i = activation_layer[neuron]
                 next_weights_column = next_weights_layer[:, neuron]
