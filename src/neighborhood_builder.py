@@ -41,7 +41,7 @@ def extract_neighborhood(urm, resolution=0.5): # TODO: refactoring
             user = node
             user_neighborhood_list = []
             for neighbor, neighborhood_id in communities_with_items.items():
-                if neighborhood_id == community_id and neighbor not in user_nodes:  #TODO: remove "not in" condition
+                if neighborhood_id == community_id:
                     user_neighborhood_list.append(neighbor)
             user_neighborhood = np.array(user_neighborhood_list)
             user_neighborhood = user_neighborhood - offset
@@ -60,7 +60,7 @@ def extract_neighborhood(urm, resolution=0.5): # TODO: refactoring
             item = node - offset
             item_neighborhood_list = []
             for neighbor, neighborhood_id in communities_with_users.items():
-                if neighborhood_id == community_id and neighbor not in item_nodes:
+                if neighborhood_id == community_id:
                     item_neighborhood_list.append(neighbor)
             item_neighborhood = np.array(item_neighborhood_list)
 
