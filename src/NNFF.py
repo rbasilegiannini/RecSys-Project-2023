@@ -69,6 +69,11 @@ class NeuralNetworkFF:
 
             self.__params_per_layer.append(weights)
 
+        num_params = 0
+        for layer in range(self.__num_layers):
+            num_params += self.__params_per_layer[layer].size
+        self.__num_params = num_params
+
     def compute_network(self, input_data):  # TODO: refactoring
         """
         This function computes the output of the NN based on the current parameters
@@ -165,6 +170,9 @@ class NeuralNetworkFF:
 
     def get_all_params(self):
         return self.__params_per_layer
+
+    def get_num_params(self):
+        return self.__num_params
 
     def get_layer_params(self, layer):
         return self.__params_per_layer[layer]
