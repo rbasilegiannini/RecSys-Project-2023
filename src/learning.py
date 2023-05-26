@@ -241,6 +241,7 @@ def _plot_errors(net_config_evaluated_list):
     plt.plot(x, e_val, label='val')
     plt.legend()
     plt.ylabel('Error')
+    plt.ylim([0.0, 1.0])
 
     plt.show()
 
