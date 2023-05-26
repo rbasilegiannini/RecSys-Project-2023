@@ -62,7 +62,7 @@ class NeuralNetworkFF:
                 input_lines = self.__neurons_per_layer[layer - 1]
 
             current_neurons = self.__neurons_per_layer[layer]
-            weights = np.random.rand(current_neurons, input_lines)
+            weights = np.random.rand(current_neurons, input_lines) - 0.5
 
             if self.__bias:
                 weights = np.insert(weights, 0, [random.random()], axis=1)
