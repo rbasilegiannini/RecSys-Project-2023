@@ -22,7 +22,7 @@ class NNCF:
         self.__neurons = neurons
         self.__activation = activation
 
-    def run_integration_component(self):
+    def run_integration_component(self, kernels=8):
         """
         This method run the integration component phase.
 
@@ -49,9 +49,9 @@ class NNCF:
 
         # Retrieve the neighborhood embedding
         users_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_users_neighborhood,
-                                                                               items_latent_vector)
+                                                                               items_latent_vector, kernels)
         items_neighborhood_embedding = emb_builder.get_neighborhoods_embedding(binary_items_neighborhood,
-                                                                               users_latent_vector)
+                                                                               users_latent_vector, kernels)
 
         # Concatenate the three embeddings
         self.__user_item_concatenated_embeddings = emb_builder.get_concatenated_embeddings(

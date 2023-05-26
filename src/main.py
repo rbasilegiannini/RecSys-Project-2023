@@ -13,9 +13,10 @@ hyperparams = {
     "res": 0.6,
     "k": 10,
     "hidden layers": 1,
-    "neurons": 1,
-    "activation": 'sigmoid',
-    "max epochs": 5
+    "neurons": 5,
+    "activation": 'leakyrelu',
+    "max epochs": 100,
+    "kernels": 8
 }
 
 
@@ -33,7 +34,7 @@ def build_recsys(urm, items_to_avoid):
                     )
 
     run_int_comp_time_start = time.time()
-    user_item_concatenated_embeddings = net.run_integration_component()
+    user_item_concatenated_embeddings = net.run_integration_component(hyperparams['kernels'])
     run_int_comp_time_end = time.time()
     run_int_comp_time = run_int_comp_time_end - run_int_comp_time_start
     print("Integration component time: " + str(round(run_int_comp_time, 2)) + "s")
