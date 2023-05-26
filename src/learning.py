@@ -96,7 +96,7 @@ class RPROP:
         return NN
 
 
-def compute_error(NN, samples, scalar_labels):
+def _compute_error(NN, samples, scalar_labels):
     """
     This function computes the cross entropy soft max error on a specific dataset.
 
@@ -122,7 +122,7 @@ def compute_error(NN, samples, scalar_labels):
     return error / dataset_size
 
 
-def learning(NN, max_epoch, train_samples, scalar_labels):  # TODO: refactoring
+def learning(NN, max_epoch, train_samples, scalar_labels):
     """
     This function is used to train a NN with a specific training set.
 
@@ -152,36 +152,15 @@ def learning(NN, max_epoch, train_samples, scalar_labels):  # TODO: refactoring
         'label': scalar_labels[training_set_size + 1:]
     }
 
-    # Compute the number of the NN parameters
-    num_params = 0
-    for layer in range(NN.get_num_layer()):
-        num_params += NN.get_layer_params(layer).size
-
     # Learning
-    rprop = RPROP(num_params)
+    rprop = RPROP(NN.get_num_params())
     back_prop = bp.BackPropagation(NN)
     evaluated_net_config_list = []
     for epoch in range(max_epoch):
         print("Run epoch: " + str(epoch + 1) + "...", end="")
         start = time.time()
 
-        # Compute the error gradient
-        grad_E_tot = np.zeros(num_params)
-        for i in range(training_set_size):
-
-            grad_E_sample = back_prop.compute_error_gradient(training_set['samples'][i],
-                                                             np.array([training_set['label'][i]]))
-            grad_E_tot += grad_E_sample
-
-        # Update NN parameters
-        rprop.update(NN, grad_E_tot)
-
-        # Compute errors
-        train_error = compute_error(NN, training_set['samples'], training_set['label'])
-        val_error = compute_error(NN, validation_set['samples'], validation_set['label'])
-
-        # Save the evaluated NN's information of this epoch
-        evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
+        evaluated_net_config = _run_epoch(NN, rprop, back_prop, training_set, validation_set)
         evaluated_net_config_list.append(evaluated_net_config)
 
         end = time.time()
@@ -196,12 +175,53 @@ def learning(NN, max_epoch, train_samples, scalar_labels):  # TODO: refactoring
     # Update NN with best parameters
     NN.set_all_params(evaluated_net_config_list[best_epoch].net_params)
 
-    plot_errors(evaluated_net_config_list)
+    _plot_errors(evaluated_net_config_list)
 
     return NN
 
 
-def plot_errors(net_config_evaluated_list):
+def _run_epoch(NN, rprop, back_prop, training_set, validation_set):
+    """
+    This method computes the epoch.
+
+    :param NN:
+        The NN.
+    :param rprop:
+        The RPROP object.
+    :param back_prop:
+        The back propagation object.
+    :param training_set:
+        The training set's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param validation_set:
+        The validation set's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param num_params:
+        The number of parameters.
+    :return:
+        The evaluation of the network's configuration.
+    """
+
+    grad_E_tot = np.zeros(NN.get_num_params())
+    training_set_size = training_set['samples'].shape[0]
+
+    for i in range(training_set_size):
+        grad_E_sample = back_prop.compute_error_gradient(training_set['samples'][i],
+                                                         np.array([training_set['label'][i]]))
+        grad_E_tot += grad_E_sample
+
+    # Update NN parameters
+    rprop.update(NN, grad_E_tot)
+
+    # Compute errors
+    train_error = _compute_error(NN, training_set['samples'], training_set['label'])
+    val_error = _compute_error(NN, validation_set['samples'], validation_set['label'])
+
+    # Save the evaluated NN's information of this epoch
+    evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
+
+    return evaluated_net_config
+
+
+def _plot_errors(net_config_evaluated_list):
     """
     This function is used to plot training and validation errors of an evaluated NN.
 
