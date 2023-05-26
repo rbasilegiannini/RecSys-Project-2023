@@ -21,11 +21,7 @@ class BackPropagation:
 
         self.__deltas_per_layer = np.ndarray(self.__num_layers, dtype=np.ndarray)
 
-        num_of_params = 0
-        for layer_weights in NN.get_all_params():
-            num_of_params += layer_weights.size
-
-        self._num_of_params = num_of_params
+        self._num_of_params = NN.get_num_params()
         self._bias_state = NN.get_bias_state()
 
     def compute_error_gradient(self, input_data, targets):
