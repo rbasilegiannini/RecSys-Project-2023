@@ -40,54 +40,13 @@ def extract_urm_neighborhoods(urm, resolution=0.5):
 
         if node in user_nodes:  # node is a user
             user = node
-            # user_neighborhood_list = []
-            # for neighbor, neighborhood_id in communities_with_items.items():
-            #     if neighborhood_id == community_id:
-            #         user_neighborhood_list.append(neighbor)
-            # user_neighborhood = np.array(user_neighborhood_list)
-            # user_neighborhood = user_neighborhood - offset
-            #
-            # # Check neighborhood size
-            # if user_neighborhood.size > 50:
-            #     user_neighborhood = user_neighborhood[:50]
-            #
-            # elif user_neighborhood.size == 0:
-            #     urm_user_row = urm[user, :]
-            #     user_neighborhood = _handle_empty_neighborhood(urm_user_row)
-            #
-            # users_neighborhood[user] = user_neighborhood
-
-            users_neighborhood[user] = _generate_node_neighborhood(user,
-                                                                   communities_with_items,
-                                                                   community_id,
-                                                                   urm,
-                                                                   offset,
-                                                                   is_user=True
-                                                                   )
+            users_neighborhood[user] = _generate_node_neighborhood(user, communities_with_items, community_id,
+                                                                   urm, offset, is_user=True)
 
         else:  # node is an item
             item = node - offset
-            # item_neighborhood_list = []
-            # for neighbor, neighborhood_id in communities_with_users.items():
-            #     if neighborhood_id == community_id:
-            #         item_neighborhood_list.append(neighbor)
-            # item_neighborhood = np.array(item_neighborhood_list)
-            #
-            # # Check neighborhood size
-            # if item_neighborhood.size > 50:
-            #     item_neighborhood = item_neighborhood[:50]
-            # elif item_neighborhood.size == 0:
-            #     urm_item_column = urm[:, item]
-            #     item_neighborhood = _handle_empty_neighborhood(urm_item_column)
-            #
-            # items_neighborhood[item] = item_neighborhood
-            items_neighborhood[item] = _generate_node_neighborhood(item,
-                                                                   communities_with_users,
-                                                                   community_id,
-                                                                   urm,
-                                                                   offset,
-                                                                   is_user=False
-                                                                   )
+            items_neighborhood[item] = _generate_node_neighborhood(item, communities_with_users, community_id,
+                                                                   urm, offset, is_user=False)
 
     return [users_neighborhood, items_neighborhood]
 

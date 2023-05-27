@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import dataset_extractor as ds_extractor
-import MLP_training_set_builder as ds_builder
+import MLP_training_set_builder as ts_builder
 import tensorflow as tf
 import NNCF
 
@@ -39,7 +39,7 @@ def build_recsys(urm, items_to_avoid):
     run_int_comp_time = run_int_comp_time_end - run_int_comp_time_start
     print("Integration component time: " + str(round(run_int_comp_time, 2)) + "s")
 
-    training_set = ds_builder.get_training_set(urm, user_item_concatenated_embeddings, items_to_avoid)
+    training_set = ts_builder.get_training_set(urm, user_item_concatenated_embeddings, items_to_avoid)
     net.learning_MLP(training_set, hyperparams['max epochs'])
 
     return net
