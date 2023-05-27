@@ -121,14 +121,14 @@ class NeuralNetworkFF:
         input_data = np.column_stack([input_data])
 
         # From the input layer to the output layer
-        activation = []
-        output = []
+        activation = np.empty(shape=self.__num_layers, dtype=np.ndarray)
+        output = np.empty(shape=self.__num_layers, dtype=np.ndarray)
         input_lines = input_data
 
         for layer in range(self.__num_layers):
             [activation_of_layer, output_of_layer] = self.__compute_layer(layer, input_lines)
-            activation.append(activation_of_layer)
-            output.append(output_of_layer)
+            activation[layer] = activation_of_layer
+            output[layer] = output_of_layer
 
             # Update input_lines for the next loop
             input_lines = output_of_layer
