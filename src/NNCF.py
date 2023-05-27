@@ -36,7 +36,7 @@ class NNCF:
         num_of_users = self.__urm.shape[0]
         num_of_items = self.__urm.shape[1]
 
-        [users_neighborhood, items_neighborhood] = nb_builder.extract_neighborhood(self.__urm, self.__res)
+        [users_neighborhood, items_neighborhood] = nb_builder.extract_urm_neighborhoods(self.__urm, self.__res)
         binary_users_neighborhood = encoder.get_neighborhoods_encoding(users_neighborhood, num_of_items)
         binary_items_neighborhood = encoder.get_neighborhoods_encoding(items_neighborhood, num_of_users)
 
