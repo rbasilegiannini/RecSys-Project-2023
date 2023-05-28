@@ -1,8 +1,8 @@
 import numpy as np
 import time
 import dataset_extractor as ds_extractor
+import URM_manager
 import MLP_training_set_builder as ts_builder
-import tensorflow as tf
 import NNCF
 
 USERS_SIZE = 943
@@ -11,12 +11,12 @@ ITEMS_SIZE = 1682
 
 hyperparams = {
     "res": 0.6,
-    "k": 10,
+    "k": 3,
     "hidden layers": 1,
     "neurons": 5,
-    "activation": 'leakyrelu',
-    "max epochs": 100,
-    "kernels": 8
+    "activation": 'relu',
+    "max epochs": 1,
+    "kernels": 2
 }
 
 
@@ -85,14 +85,17 @@ def main():
 
     # Retrieve URM and Test items list
     print("URM extraction...", end="")
-    dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
-    urm = dataset_extractor.get_urm()
-    test_items = dataset_extractor.get_test_items()
+    # dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
+    # urm = dataset_extractor.extract_urm()
+    urm_manager = URM_manager.URMManager(USERS_SIZE, ITEMS_SIZE)
+    urm = urm_manager.get_urm()
+    # urm = dataset_extractor.get_urm()
+    test_items = urm_manager.get_test_items()
 
     # Retrieve the items to avoid in the learning task (they will be used for recommendation)
     not_interacted_items = np.ndarray([USERS_SIZE, 101], dtype=int)
     for user in range(USERS_SIZE):
-        not_interacted_items[user] = dataset_extractor.get_not_interacted_items_for_recommendation(user)
+        not_interacted_items[user] = urm_manager.get_not_interacted_items_for_recommendation(user)
 
     print(" Complete.")
 
