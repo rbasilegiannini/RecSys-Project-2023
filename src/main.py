@@ -5,17 +5,17 @@ import MLP_training_set_builder as ds_builder
 import tensorflow as tf
 import NNCF
 
-USERS_SIZE = 700
-ITEMS_SIZE = 1200
+USERS_SIZE = 943
+ITEMS_SIZE = 1682
 
 
 hyperparams = {
-    "res": 0.6,
-    "k": 10,
+    "res": 1,
+    "k": 30,
     "hidden layers": 1,
-    "neurons": 1,
-    "activation": 'sigmoid',
-    "max epochs": 5
+    "neurons": 10,
+    "activation": 'relu',
+    "max epochs": 150
 }
 
 
@@ -95,7 +95,7 @@ def main():
 
     print(" Complete.")
 
-    for attempt in range(2):
+    for attempt in range(1):
         recsys = build_recsys(urm, not_interacted_items)
         hr_values = evaluate_recsys(recsys, top_k, test_items, not_interacted_items)
         hr5_list.append(hr_values[0])

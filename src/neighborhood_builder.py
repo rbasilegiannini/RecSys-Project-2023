@@ -32,8 +32,8 @@ def extract_neighborhood(urm, resolution=0.5):
     items_neighborhood = np.empty(shape=len(item_nodes), dtype=np.ndarray)
 
     # From key = 0 to key = 942 are users. The values represent the community's id
-    communities_with_users = {node: communities[node] for node in range(700)}  # TODO: Remove hard coding
-    communities_with_items = {node: communities[node] for node in range(offset, offset + 1200)}
+    communities_with_users = {node: communities[node] for node in range(943)}  # TODO: Remove hard coding
+    communities_with_items = {node: communities[node] for node in range(offset, offset + 1682)}
 
     for node, community_id in communities.items():
 
