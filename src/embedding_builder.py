@@ -12,14 +12,14 @@ def get_latent_vectors(urm, latent_factor_size):
         The number of latent factors
     """
     [u, s, vh] = np.linalg.svd(urm, full_matrices=False)
-    s = np.diag(s)
+    s = np.sqrt(np.diag(s))
 
     # Take most significant features
     u = u[:, 0:latent_factor_size]
     s = s[0:latent_factor_size, 0: latent_factor_size]
     vh = vh[0:latent_factor_size, :]
 
-    return [u, np.transpose(s @ vh)]
+    return [u@s, np.transpose(s @ vh)]
 
 
 def get_interaction_functions(users_latent_vector, items_latent_vector, latent_factor_size):
