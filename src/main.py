@@ -85,11 +85,8 @@ def main():
 
     # Retrieve URM and Test items list
     print("URM extraction...", end="")
-    # dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
-    # urm = dataset_extractor.extract_urm()
     urm_manager = URM_manager.URMManager(USERS_SIZE, ITEMS_SIZE)
     urm = urm_manager.get_urm()
-    # urm = dataset_extractor.get_urm()
     test_items = urm_manager.get_test_items()
 
     # Retrieve the items to avoid in the learning task (they will be used for recommendation)
