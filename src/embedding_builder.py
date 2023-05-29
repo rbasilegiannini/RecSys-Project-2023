@@ -12,14 +12,14 @@ def get_latent_vectors(urm, latent_factor_size):
         The number of latent factors
     """
     [u, s, vh] = np.linalg.svd(urm, full_matrices=False)
-    s = np.diag(s)
+    s = np.sqrt(np.diag(s))
 
     # Take most significant features
     u = u[:, 0:latent_factor_size]
     s = s[0:latent_factor_size, 0: latent_factor_size]
     vh = vh[0:latent_factor_size, :]
 
-    return [u, np.transpose(s @ vh)]
+    return [u@s, np.transpose(s @ vh)]
 
 
 def get_interaction_functions(users_latent_vector, items_latent_vector, latent_factor_size):
@@ -33,14 +33,14 @@ def get_interaction_functions(users_latent_vector, items_latent_vector, latent_f
     return interaction_functions
 
 
-def get_neighborhoods_embedding(neighborhoods_encoding, embedding):
+def get_neighborhoods_embedding(neighborhoods_encoding, embedding, kernels):
     # First, we get p_u(N) (or q_i(N)), using a projection of "embeddings"
     # through "neighborhoods_encoding"
     normalized_neighborhoods_embedding = []
     for neighborhood_encoding in neighborhoods_encoding:
         neighborhood_embedding = embedding[np.where(neighborhood_encoding == 1)]
         # Then, we normalize p_u(N) (or q_i(N))
-        normalized_neighborhood_embedding = _normalize_neighborhood_embedding(neighborhood_embedding)
+        normalized_neighborhood_embedding = _normalize_neighborhood_embedding(neighborhood_embedding, kernels)
         normalized_neighborhoods_embedding.append(normalized_neighborhood_embedding)
 
     # Finally, we convert the neighborhoods embedding in a numpy array
@@ -71,13 +71,13 @@ def get_concatenated_embeddings(interaction_functions, users_neighborhood_embedd
     return concatenated_embeddings
 
 
-def _normalize_neighborhood_embedding(neighborhood_embedding):
+def _normalize_neighborhood_embedding(neighborhood_embedding, kernels):
     # Convolute the neighborhood latent vectors and max-pool it
     reshaped_neighborhood_embedding = neighborhood_embedding.reshape(
         neighborhood_embedding.shape[0], neighborhood_embedding.shape[1], 1)
 
     # |N| x k x |kernels|
-    convoluted_neighborhood_embedding = Conv1D(16, 5, activation='tanh',
+    convoluted_neighborhood_embedding = Conv1D(kernels, 5, activation='tanh',
                                                padding='same',
                                                kernel_initializer=GlorotUniform(seed=0),
                                                input_shape=reshaped_neighborhood_embedding[1:]

@@ -4,6 +4,10 @@ import random
 
 
 class NeuralNetworkFF:
+    """
+    This class represents the structure and the behaviour of a Neural Network Feed Forward.
+    """
+
     def __init__(self,
                  input_dim,
                  neurons_per_hidden_layers=None,
@@ -62,16 +66,47 @@ class NeuralNetworkFF:
                 input_lines = self.__neurons_per_layer[layer - 1]
 
             current_neurons = self.__neurons_per_layer[layer]
-            weights = np.random.rand(current_neurons, input_lines)
+            weights = np.random.rand(current_neurons, input_lines) - 0.5
 
             if self.__bias:
                 weights = np.insert(weights, 0, [random.random()], axis=1)
 
             self.__params_per_layer.append(weights)
 
+        num_params = 0
+        for layer in range(self.__num_layers):
+            num_params += self.__params_per_layer[layer].size
+        self.__num_params = num_params
+
+    def __compute_layer(self, layer, input_lines):
+        """
+        This method computes the layer's activation and output.
+        :param layer:
+            The current layer.
+        :param input_lines:
+            The layer's input.
+        :return:
+        """
+        if layer < self.__num_layers - 1:   # It's a hidden layer
+            afunc_type = self.__activation_function
+        else:   # It's the output layer
+            afunc_type = self.__output_function
+
+        current_params = self.__params_per_layer[layer]
+        num_of_neurons = self.__neurons_per_layer[layer]
+        output_of_layer = np.zeros(num_of_neurons)
+
+        # Compute activation and output
+        activation_of_layer = current_params @ input_lines
+
+        for n in range(num_of_neurons):
+            output_of_layer[n] = af.activation_function[afunc_type](activation_of_layer[n])
+
+        return [activation_of_layer.flatten(), output_of_layer]
+
     def compute_network(self, input_data):
         """
-        This function computes the output of the NN based on the current parameters
+        This method computes the output of the NN based on the current parameters
 
         :param input_data:
             Array with input data.
@@ -85,43 +120,20 @@ class NeuralNetworkFF:
             input_data = np.insert(input_data, 0, [1], axis=0)
         input_data = np.column_stack([input_data])
 
-        # From the input layer to the last hidden layer
-        activation = []
-        output = []
+        # From the input layer to the output layer
+        activation = np.empty(shape=self.__num_layers, dtype=np.ndarray)
+        output = np.empty(shape=self.__num_layers, dtype=np.ndarray)
         input_lines = input_data
-        afunc_type = self.__activation_function
-        for layer in range(self.__num_layers - 1):
 
-            # Init loop
-            current_params = self.__params_per_layer[layer]
-            num_of_neurons = self.__neurons_per_layer[layer]
-            output_of_layer = np.zeros(num_of_neurons)
-
-            # Compute activation and output
-            activation_of_layer = current_params @ input_lines
-            activation.append(activation_of_layer.flatten())
-
-            for n in range(num_of_neurons):
-                output_of_layer[n] = af.activation_function[afunc_type](activation_of_layer[n])
-            output.append(np.array(output_of_layer))
+        for layer in range(self.__num_layers):
+            [activation_of_layer, output_of_layer] = self.__compute_layer(layer, input_lines)
+            activation[layer] = activation_of_layer
+            output[layer] = output_of_layer
 
             # Update input_lines for the next loop
             input_lines = output_of_layer
             if self.__bias:
                 input_lines = np.insert(input_lines, 0, [1], axis=0)
-
-        # Compute the output layer
-        current_params = self.__params_per_layer[-1]
-        num_of_neurons = self.__neurons_per_output_layer
-        output_of_layer = np.zeros(num_of_neurons)
-
-        activation_of_layer = current_params @ input_lines
-        activation.append(activation_of_layer.flatten())
-
-        out_func_type = self.__output_function
-        for n in range(num_of_neurons):
-            output_of_layer[n] = af.activation_function[out_func_type](activation_of_layer[n])
-        output.append(np.array(output_of_layer))
 
         return [activation, output]
 
@@ -165,6 +177,9 @@ class NeuralNetworkFF:
 
     def get_all_params(self):
         return self.__params_per_layer
+
+    def get_num_params(self):
+        return self.__num_params
 
     def get_layer_params(self, layer):
         return self.__params_per_layer[layer]

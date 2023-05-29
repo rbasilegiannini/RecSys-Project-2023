@@ -1,8 +1,8 @@
 import numpy as np
 import time
 import dataset_extractor as ds_extractor
-import MLP_training_set_builder as ds_builder
-import tensorflow as tf
+import URM_manager
+import MLP_training_set_builder as ts_builder
 import NNCF
 
 USERS_SIZE = 943
@@ -11,11 +11,12 @@ ITEMS_SIZE = 1682
 
 hyperparams = {
     "res": 0.6,
-    "k": 10,
+    "k": 3,
     "hidden layers": 1,
-    "neurons": 1,
-    "activation": 'sigmoid',
-    "max epochs": 5
+    "neurons": 5,
+    "activation": 'relu',
+    "max epochs": 1,
+    "kernels": 2
 }
 
 
@@ -33,12 +34,12 @@ def build_recsys(urm, items_to_avoid):
                     )
 
     run_int_comp_time_start = time.time()
-    user_item_concatenated_embeddings = net.run_integration_component()
+    user_item_concatenated_embeddings = net.run_integration_component(hyperparams['kernels'])
     run_int_comp_time_end = time.time()
     run_int_comp_time = run_int_comp_time_end - run_int_comp_time_start
     print("Integration component time: " + str(round(run_int_comp_time, 2)) + "s")
 
-    training_set = ds_builder.get_training_set(urm, user_item_concatenated_embeddings, items_to_avoid)
+    training_set = ts_builder.get_training_set(urm, user_item_concatenated_embeddings, items_to_avoid)
     net.learning_MLP(training_set, hyperparams['max epochs'])
 
     return net
@@ -84,14 +85,14 @@ def main():
 
     # Retrieve URM and Test items list
     print("URM extraction...", end="")
-    dataset_extractor = ds_extractor.DatasetExtractor(USERS_SIZE, ITEMS_SIZE)
-    urm = dataset_extractor.get_urm()
-    test_items = dataset_extractor.get_test_items()
+    urm_manager = URM_manager.URMManager(USERS_SIZE, ITEMS_SIZE)
+    urm = urm_manager.get_urm()
+    test_items = urm_manager.get_test_items()
 
     # Retrieve the items to avoid in the learning task (they will be used for recommendation)
     not_interacted_items = np.ndarray([USERS_SIZE, 101], dtype=int)
     for user in range(USERS_SIZE):
-        not_interacted_items[user] = dataset_extractor.get_not_interacted_items_for_recommendation(user)
+        not_interacted_items[user] = urm_manager.get_not_interacted_items_for_recommendation(user)
 
     print(" Complete.")
 

@@ -31,14 +31,15 @@ class RPROP:
     """
     This class implements the RPROP rule used to update the parameters of a NN based on the error gradient.
     """
+
     def __init__(self, num_params):
-        self._old_grad_E = np.zeros(num_params)
-        self._update_max = 50
-        self._update_min = 1e-6
-        self._eta_minus = 0.3
-        self._eta_plus = 1.1
-        self._update_value = np.full(num_params, 0.01)
-        self._delta = np.zeros(num_params)
+        self.__old_grad_E = np.zeros(num_params)
+        self.__update_max = 50
+        self.__update_min = 1e-6
+        self.__eta_minus = 0.3
+        self.__eta_plus = 1.1
+        self.__update_value = np.full(num_params, 0.01)
+        self.__delta = np.zeros(num_params)
 
     def update(self, NN, grad_E):
         """
@@ -63,28 +64,28 @@ class RPROP:
 
             for i in range(params.size):
 
-                old_grad_E_i = self._old_grad_E[offset + i]
+                old_grad_E_i = self.__old_grad_E[offset + i]
                 current_grad_E_i = grad_E[offset + i]
 
                 if (old_grad_E_i * current_grad_E_i) > 0:
-                    self._update_value[offset + i] = min(self._update_value[offset + i] * self._eta_plus,
-                                                         self._update_max)
-                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
-                    params[i] += self._delta[offset + i]
+                    self.__update_value[offset + i] = min(self.__update_value[offset + i] * self.__eta_plus,
+                                                          self.__update_max)
+                    self.__delta[offset + i] = -np.sign(current_grad_E_i) * self.__update_value[offset + i]
+                    params[i] += self.__delta[offset + i]
                     old_grad_E_i = current_grad_E_i
 
                 elif (old_grad_E_i * current_grad_E_i) < 0:
-                    params[i] -= self._delta[offset + i]  # Backtracking
-                    self._update_value[offset + i] = max(self._update_value[offset + i] * self._eta_minus,
-                                                         self._update_min)
+                    params[i] -= self.__delta[offset + i]  # Backtracking
+                    self.__update_value[offset + i] = max(self.__update_value[offset + i] * self.__eta_minus,
+                                                          self.__update_min)
                     old_grad_E_i = 0
 
                 else:
-                    self._delta[offset + i] = -np.sign(current_grad_E_i) * self._update_value[offset + i]
-                    params[i] += self._delta[offset + i]
+                    self.__delta[offset + i] = -np.sign(current_grad_E_i) * self.__update_value[offset + i]
+                    params[i] += self.__delta[offset + i]
                     old_grad_E_i = current_grad_E_i
 
-                self._old_grad_E[offset + i] = old_grad_E_i
+                self.__old_grad_E[offset + i] = old_grad_E_i
 
             # Set new parameters
             mat_params = np.reshape(params, [rows, cols])
@@ -95,7 +96,7 @@ class RPROP:
         return NN
 
 
-def compute_error(NN, samples, scalar_labels):
+def _compute_error(NN, samples, scalar_labels):
     """
     This function computes the cross entropy soft max error on a specific dataset.
 
@@ -118,7 +119,7 @@ def compute_error(NN, samples, scalar_labels):
         sample_error = ef.cross_entropy_loss_per_sample(output_net, target)
         error += sample_error
 
-    return error/dataset_size
+    return error / dataset_size
 
 
 def learning(NN, max_epoch, train_samples, scalar_labels):
@@ -151,37 +152,19 @@ def learning(NN, max_epoch, train_samples, scalar_labels):
         'label': scalar_labels[training_set_size + 1:]
     }
 
-    # Compute the number of the NN parameters
-    num_params = 0
-    for layer in range(NN.get_num_layer()):
-        num_params += NN.get_layer_params(layer).size
-
     # Learning
-    rprop = RPROP(num_params)
+    rprop = RPROP(NN.get_num_params())
+    back_prop = bp.BackPropagation(NN)
     evaluated_net_config_list = []
     for epoch in range(max_epoch):
-        print("Run epoch: " + str(epoch+1) + "...", end="")
+        print("Run epoch: " + str(epoch + 1) + "...", end="")
         start = time.time()
 
-        # Compute the error gradient
-        grad_E_tot = np.zeros(num_params)
-        for i in range(training_set_size):
-            grad_E_sample = bp.back_propagation(NN, training_set['samples'][i], np.array([training_set['label'][i]]))
-            grad_E_tot += grad_E_sample
-
-        # Update NN parameters
-        rprop.update(NN, grad_E_tot)
-
-        # Compute errors
-        train_error = compute_error(NN, training_set['samples'], training_set['label'])
-        val_error = compute_error(NN, validation_set['samples'], validation_set['label'])
-
-        # Save the evaluated NN's information of this epoch
-        evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
+        evaluated_net_config = _run_epoch(NN, rprop, back_prop, training_set, validation_set)
         evaluated_net_config_list.append(evaluated_net_config)
 
         end = time.time()
-        timing = str(round(end-start, 2))
+        timing = str(round(end - start, 2))
         print(" Complete. (" + timing + "s) ")
 
     # Retrieve best epoch (smallest validation error)
@@ -192,12 +175,53 @@ def learning(NN, max_epoch, train_samples, scalar_labels):
     # Update NN with best parameters
     NN.set_all_params(evaluated_net_config_list[best_epoch].net_params)
 
-    plot_errors(evaluated_net_config_list)
+    _plot_errors(evaluated_net_config_list)
 
     return NN
 
 
-def plot_errors(net_config_evaluated_list):
+def _run_epoch(NN, rprop, back_prop, training_set, validation_set):
+    """
+    This method computes the epoch.
+
+    :param NN:
+        The NN.
+    :param rprop:
+        The RPROP object.
+    :param back_prop:
+        The back propagation object.
+    :param training_set:
+        The training set's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param validation_set:
+        The validation set's samples. This input must be a matrix where each row is a sample and each column is a feature.
+    :param num_params:
+        The number of parameters.
+    :return:
+        The evaluation of the network's configuration.
+    """
+
+    grad_E_tot = np.zeros(NN.get_num_params())
+    training_set_size = training_set['samples'].shape[0]
+
+    for i in range(training_set_size):
+        grad_E_sample = back_prop.compute_error_gradient(training_set['samples'][i],
+                                                         np.array([training_set['label'][i]]))
+        grad_E_tot += grad_E_sample
+
+    # Update NN parameters
+    rprop.update(NN, grad_E_tot)
+
+    # Compute errors
+    train_error = _compute_error(NN, training_set['samples'], training_set['label'])
+    val_error = _compute_error(NN, validation_set['samples'], validation_set['label'])
+
+    # Save the evaluated NN's information of this epoch
+    evaluated_net_config = EvaluatedNetConfig(NN.get_all_params(), train_error, val_error)
+
+    return evaluated_net_config
+
+
+def _plot_errors(net_config_evaluated_list):
     """
     This function is used to plot training and validation errors of an evaluated NN.
 
@@ -217,6 +241,7 @@ def plot_errors(net_config_evaluated_list):
     plt.plot(x, e_val, label='val')
     plt.legend()
     plt.ylabel('Error')
+    plt.ylim([0.0, 1.0])
 
     plt.show()
 
@@ -257,6 +282,3 @@ def binary_accuracy(NN, samples, scalar_labels, threshold):
     acc = (num_correct / num_samples) * 100
 
     return acc
-
-
-
