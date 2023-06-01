@@ -15,12 +15,13 @@ def extract_urm_neighborhoods(urm, resolution=0.5):
     :return:
         A list with users neighborhood (index 0) and items neighborhood (index 1)
     """
-
     # Check resolution
     if resolution > 1:
         resolution = 1
     if resolution < 0:
         resolution = 0
+    normalization_factor = 0.7
+    resolution = resolution * normalization_factor
 
     # extract communities from URM
     [bi_graph, offset] = _generate_bipartite_network(urm)
