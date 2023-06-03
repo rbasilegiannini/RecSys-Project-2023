@@ -1,6 +1,6 @@
 ## Introduction
-An academic project about a Recommender System realized for the Intelligent Web course. 
-This Recsys is based on the _Neighborhood-based Neural Collaborative Filtering_ model and 
+This academic project aims to develop a Recommender System whose application can be valuable in the field of Semantic Web. 
+The Recsys is based on the _Neighborhood-based Neural Collaborative Filtering_ model and 
 the Deep Learning theory. 
 The dataset used for the experimental analysis is [MovieLens 100k](https://grouplens.org/datasets/movielens/100k/).
 
