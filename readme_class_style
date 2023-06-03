@@ -1,0 +1,7 @@
+<style>
+  .styleClass > rect {
+    fill: #F0FFFF;
+    stroke: #ffff00;
+    stroke-width: 4px;
+  }
+</style>
