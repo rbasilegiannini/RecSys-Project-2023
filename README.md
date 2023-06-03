@@ -1,7 +1,8 @@
 ## Introduction
 An academic project about a Recommender System realized for the Intelligent Web course. 
 This Recsys is based on the _Neighborhood-based Neural Collaborative Filtering_ model and 
-the Deep Learning theory.
+the Deep Learning theory. 
+The dataset used for the experimental analysis is [MovieLens 100k](https://grouplens.org/datasets/movielens/100k/).
 
 ## Requirements
 
@@ -46,3 +47,5 @@ A. Karatzoglou and B. Hidasi, "Deep Learning for Recommender Systems," in RecSys
 X. He, L. Liao, H. Zhang, L. Nie, X. Hu and T.-S. Chua, "Neural Collaborative Filtering," in WWW '17: Proceedings of the 26th International Conference on World Wide Web, 2017. 
 
 C. C. Aggarwal, in Recommender Systems: The Textbook, Springer, 2016.
+
+F. M. Harper and J. A. Konstan, "The MovieLens Datasets: History and Context.," in ACM Transactions on Interactive Intelligent Systems (TiiS), 2015. 
