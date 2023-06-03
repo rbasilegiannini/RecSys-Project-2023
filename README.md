@@ -17,7 +17,15 @@ The dataset used for the experimental analysis is [MovieLens 100k](https://group
 
 ## An overview of the architecture
 ```mermaid
+<style>
+  .styleClass > rect {
+    fill: #F0FFFF;
+    stroke: #ffff00;
+    stroke-width: 4px;
+  }
+</style>
 classDiagram
+  class Client:::styleClass
   DirectionL
   TrainingSetBuilder<..Client
   Client..>NNCF
