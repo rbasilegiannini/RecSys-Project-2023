@@ -10,20 +10,17 @@ ITEMS_SIZE = 1682
 
 
 hyperparams = {
-    "res": 0.6,
-    "k": 3,
+    "res": 0.5,
+    "k": 10,
     "hidden layers": 1,
     "neurons": 5,
-    "activation": 'relu',
-    "max epochs": 1,
-    "kernels": 2
+    "activation": 'leaky_relu',
+    "max epochs": 100,
+    "kernels": 16
 }
 
 
 def build_recsys(urm, items_to_avoid):
-    print('Welcome to the best Recommender System.\nEver.')
-    print()
-
     # Building and learning NNCF
     net = NNCF.NNCF(urm,
                     hyperparams['res'],
